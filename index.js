@@ -7,6 +7,7 @@ import {
   ListToolsRequestSchema,
 } from '@modelcontextprotocol/sdk/types.js';
 import TodoServiceImpl from './todoService.js';
+import ProjectServiceImpl from './projectService.js';
 import {
   CreateTodoInputSchema,
   ListTodosInputSchema,
@@ -14,11 +15,17 @@ import {
   DeleteTodoInputSchema,
   ToggleStarredInputSchema,
   SetPriorityInputSchema,
+  CreateProjectInputSchema,
+  ListProjectsInputSchema,
+  UpdateProjectInputSchema,
+  DeleteProjectInputSchema,
+  GetProjectInputSchema,
 } from './schemas.js';
 
 // Use environment variable for DB path, default to local file
 const dbPath = process.env.DB_PATH || './todos.db';
-const service = new TodoServiceImpl(dbPath);
+const todoService = new TodoServiceImpl(dbPath);
+const projectService = new ProjectServiceImpl(todoService.db);
 
 const server = new Server(
   {
@@ -42,6 +49,14 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
         inputSchema: {
           type: 'object',
           properties: {
+            projectId: {
+              type: 'string',
+              description: 'Project ID this todo belongs to',
+            },
+            title: {
+              type: 'string',
+              description: 'Short title for the todo',
+            },
             text: {
               type: 'string',
               description: 'The todo item text',
@@ -75,6 +90,10 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
         inputSchema: {
           type: 'object',
           properties: {
+            projectId: {
+              type: 'string',
+              description: 'Filter by project ID',
+            },
             starred: {
               type: 'boolean',
               description: 'Filter by starred status',
@@ -106,6 +125,14 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
             id: {
               type: 'string',
               description: 'The todo ID',
+            },
+            projectId: {
+              type: 'string',
+              description: 'Project ID (set to null to remove from project)',
+            },
+            title: {
+              type: 'string',
+              description: 'Updated title',
             },
             text: {
               type: 'string',
@@ -190,6 +217,82 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
           required: ['id', 'priority'],
         },
       },
+      {
+        name: 'create_project',
+        description: 'Create a new project',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            name: {
+              type: 'string',
+              description: 'The project name',
+            },
+            description: {
+              type: 'string',
+              description: 'Project description',
+            },
+          },
+          required: ['name'],
+        },
+      },
+      {
+        name: 'list_projects',
+        description: 'List all projects',
+        inputSchema: {
+          type: 'object',
+          properties: {},
+        },
+      },
+      {
+        name: 'get_project',
+        description: 'Get a project by ID',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            id: {
+              type: 'string',
+              description: 'The project ID',
+            },
+          },
+          required: ['id'],
+        },
+      },
+      {
+        name: 'update_project',
+        description: 'Update a project',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            id: {
+              type: 'string',
+              description: 'The project ID',
+            },
+            name: {
+              type: 'string',
+              description: 'Updated project name',
+            },
+            description: {
+              type: 'string',
+              description: 'Updated project description',
+            },
+          },
+          required: ['id'],
+        },
+      },
+      {
+        name: 'delete_project',
+        description: 'Delete a project (todos in project will be unassigned)',
+        inputSchema: {
+          type: 'object',
+          properties: {
+            id: {
+              type: 'string',
+              description: 'The project ID',
+            },
+          },
+          required: ['id'],
+        },
+      },
     ],
   };
 });
@@ -203,24 +306,28 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
       case 'create_todo': {
         const input = CreateTodoInputSchema.parse(args);
         const metadata = {
+          projectId: input.projectId,
+          title: input.title,
           starred: input.starred,
           priority: input.priority,
           tags: input.tags,
           dueDate: input.dueDate ? new Date(input.dueDate) : undefined,
         };
-        const todo = service.createTodo(input.text, metadata);
+        const todo = todoService.createTodo(input.text, metadata);
         return { content: [{ type: 'text', text: JSON.stringify(todo, null, 2) }] };
       }
 
       case 'list_todos': {
         const filters = ListTodosInputSchema.parse(args);
-        const todos = service.getTodos(filters);
+        const todos = todoService.getTodos(filters);
         return { content: [{ type: 'text', text: JSON.stringify(todos, null, 2) }] };
       }
 
       case 'update_todo': {
         const input = UpdateTodoInputSchema.parse(args);
         const updates = {
+          projectId: input.projectId,
+          title: input.title,
           text: input.text,
           completed: input.completed,
           starred: input.starred,
@@ -228,26 +335,60 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
           tags: input.tags,
           dueDate: input.dueDate ? new Date(input.dueDate) : undefined,
         };
-        const todo = service.updateTodo(input.id, updates);
+        const todo = todoService.updateTodo(input.id, updates);
         return { content: [{ type: 'text', text: JSON.stringify(todo, null, 2) }] };
       }
 
       case 'delete_todo': {
         const input = DeleteTodoInputSchema.parse(args);
-        const result = service.deleteTodo(input.id);
+        const result = todoService.deleteTodo(input.id);
         return { content: [{ type: 'text', text: result ? 'Todo deleted successfully' : 'Todo not found' }] };
       }
 
       case 'toggle_starred': {
         const input = ToggleStarredInputSchema.parse(args);
-        const todo = service.toggleStarred(input.id, input.starred);
+        const todo = todoService.toggleStarred(input.id, input.starred);
         return { content: [{ type: 'text', text: JSON.stringify(todo, null, 2) }] };
       }
 
       case 'set_priority': {
         const input = SetPriorityInputSchema.parse(args);
-        const todo = service.setPriority(input.id, input.priority);
+        const todo = todoService.setPriority(input.id, input.priority);
         return { content: [{ type: 'text', text: JSON.stringify(todo, null, 2) }] };
+      }
+
+      case 'create_project': {
+        const input = CreateProjectInputSchema.parse(args);
+        const project = projectService.createProject(input.name, input.description);
+        return { content: [{ type: 'text', text: JSON.stringify(project, null, 2) }] };
+      }
+
+      case 'list_projects': {
+        ListProjectsInputSchema.parse(args);
+        const projects = projectService.getProjects();
+        return { content: [{ type: 'text', text: JSON.stringify(projects, null, 2) }] };
+      }
+
+      case 'get_project': {
+        const input = GetProjectInputSchema.parse(args);
+        const project = projectService.getProject(input.id);
+        return { content: [{ type: 'text', text: JSON.stringify(project, null, 2) }] };
+      }
+
+      case 'update_project': {
+        const input = UpdateProjectInputSchema.parse(args);
+        const updates = {
+          name: input.name,
+          description: input.description,
+        };
+        const project = projectService.updateProject(input.id, updates);
+        return { content: [{ type: 'text', text: JSON.stringify(project, null, 2) }] };
+      }
+
+      case 'delete_project': {
+        const input = DeleteProjectInputSchema.parse(args);
+        const result = projectService.deleteProject(input.id);
+        return { content: [{ type: 'text', text: result ? 'Project deleted successfully' : 'Project not found' }] };
       }
 
       default:

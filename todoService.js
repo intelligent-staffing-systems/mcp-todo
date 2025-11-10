@@ -24,6 +24,7 @@ class TodoServiceImpl {
 
   /**
    * @param {Object} filters
+   * @param {string} [filters.projectId]
    * @param {string[]} [filters.tags]
    * @param {boolean} [filters.starred]
    * @param {number} [filters.priority]
@@ -36,6 +37,11 @@ class TodoServiceImpl {
 
     let query = 'SELECT * FROM todos WHERE 1=1';
     const params = [];
+
+    if (validatedFilters.projectId !== undefined) {
+      query += ' AND projectId = ?';
+      params.push(validatedFilters.projectId);
+    }
 
     if (validatedFilters.starred !== undefined) {
       query += ' AND starred = ?';
@@ -68,6 +74,8 @@ class TodoServiceImpl {
   /**
    * @param {string} text
    * @param {Object} metadata
+   * @param {string} [metadata.projectId]
+   * @param {string} [metadata.title]
    * @param {boolean} [metadata.starred]
    * @param {number} [metadata.priority]
    * @param {string[]} [metadata.tags]
@@ -85,10 +93,12 @@ class TodoServiceImpl {
     const now = new Date().toISOString();
 
     this.db.prepare(`
-      INSERT INTO todos (id, text, completed, starred, priority, tags, dueDate, createdAt, updatedAt)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+      INSERT INTO todos (id, projectId, title, text, completed, starred, priority, tags, dueDate, createdAt, updatedAt)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `).run(
       id,
+      validatedMetadata.projectId || null,
+      validatedMetadata.title || null,
       text.trim(),
       0,
       validatedMetadata.starred ? 1 : 0,
@@ -118,6 +128,14 @@ class TodoServiceImpl {
     const fields = [];
     const params = [];
 
+    if (validatedUpdates.projectId !== undefined) {
+      fields.push('projectId = ?');
+      params.push(validatedUpdates.projectId);
+    }
+    if (validatedUpdates.title !== undefined) {
+      fields.push('title = ?');
+      params.push(validatedUpdates.title);
+    }
     if (validatedUpdates.text !== undefined) {
       fields.push('text = ?');
       params.push(validatedUpdates.text.trim());
@@ -196,6 +214,8 @@ class TodoServiceImpl {
   rowToTodo(row) {
     return {
       id: row.id,
+      projectId: row.projectId || null,
+      title: row.title || null,
       text: row.text,
       completed: Boolean(row.completed),
       starred: Boolean(row.starred),
