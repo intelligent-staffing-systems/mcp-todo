@@ -482,6 +482,14 @@ export class TodoListManager {
       div.appendChild(priority);
     }
 
+    // Points badge
+    if (todo.points) {
+      const points = document.createElement('span');
+      points.className = 'px-2 py-1 text-xs font-semibold rounded bg-blue-100 text-blue-800';
+      points.textContent = `${todo.points} pts`;
+      div.appendChild(points);
+    }
+
     // Star button
     if (todo.starred) {
       const star = document.createElement('span');

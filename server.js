@@ -65,6 +65,7 @@ const mcpTools = [
         priority: { type: 'number', description: 'Priority tier (1=highest, 5=lowest)', minimum: 1, maximum: 5 },
         tags: { type: 'array', items: { type: 'string' }, description: 'Tags for organization' },
         dueDate: { type: 'string', description: 'Due date in ISO format' },
+        points: { type: 'number', description: 'Story points/difficulty (1, 2, 3, 5, 8, 13 - Fibonacci scale)', enum: [1, 2, 3, 5, 8, 13] },
       },
       required: ['text'],
     },
@@ -95,6 +96,7 @@ const mcpTools = [
         priority: { type: 'number', description: 'Priority tier', minimum: 1, maximum: 5 },
         tags: { type: 'array', items: { type: 'string' }, description: 'Tags' },
         dueDate: { type: 'string', description: 'Due date in ISO format' },
+        points: { type: 'number', description: 'Story points/difficulty (1, 2, 3, 5, 8, 13 - Fibonacci scale)', enum: [1, 2, 3, 5, 8, 13] },
       },
       required: ['id'],
     },
@@ -146,6 +148,7 @@ function executeMCPTool(name, args) {
           priority: args.priority,
           tags: args.tags,
           dueDate: args.dueDate ? new Date(args.dueDate) : undefined,
+          points: args.points,
         };
         return todoService.createTodo(args.text, metadata);
       }
@@ -162,6 +165,7 @@ function executeMCPTool(name, args) {
           priority: args.priority,
           tags: args.tags,
           dueDate: args.dueDate ? new Date(args.dueDate) : undefined,
+          points: args.points,
         };
         return todoService.updateTodo(args.id, updates);
       }
@@ -349,6 +353,7 @@ app.post('/api/todos', (req, res) => {
       priority: validatedData.priority,
       tags: validatedData.tags,
       dueDate: validatedData.dueDate ? new Date(validatedData.dueDate) : undefined,
+      points: validatedData.points,
     };
 
     const todo = todoService.createTodo(validatedData.text, metadata);
@@ -381,6 +386,7 @@ app.patch('/api/todos/:id', (req, res) => {
       priority: validatedData.priority,
       tags: validatedData.tags,
       dueDate: validatedData.dueDate ? new Date(validatedData.dueDate) : undefined,
+      points: validatedData.points,
       displayOrder: validatedData.displayOrder,
     };
 

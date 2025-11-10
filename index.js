@@ -65,6 +65,11 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
               type: 'string',
               description: 'Due date in ISO format (e.g., "2025-12-31")',
             },
+            points: {
+              type: 'number',
+              description: 'Story points/difficulty (1, 2, 3, 5, 8, 13 - Fibonacci scale)',
+              enum: [1, 2, 3, 5, 8, 13],
+            },
           },
           required: ['text'],
         },
@@ -133,6 +138,11 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
             dueDate: {
               type: 'string',
               description: 'Due date in ISO format',
+            },
+            points: {
+              type: 'number',
+              description: 'Story points/difficulty (1, 2, 3, 5, 8, 13 - Fibonacci scale)',
+              enum: [1, 2, 3, 5, 8, 13],
             },
           },
           required: ['id'],
@@ -207,6 +217,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
           priority: input.priority,
           tags: input.tags,
           dueDate: input.dueDate ? new Date(input.dueDate) : undefined,
+          points: input.points,
         };
         const todo = service.createTodo(input.text, metadata);
         return { content: [{ type: 'text', text: JSON.stringify(todo, null, 2) }] };
@@ -227,6 +238,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
           priority: input.priority,
           tags: input.tags,
           dueDate: input.dueDate ? new Date(input.dueDate) : undefined,
+          points: input.points,
         };
         const todo = service.updateTodo(input.id, updates);
         return { content: [{ type: 'text', text: JSON.stringify(todo, null, 2) }] };
