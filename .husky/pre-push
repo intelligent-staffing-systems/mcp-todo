@@ -1,0 +1,18 @@
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+echo "🔄 Pre-push hook: Updating dependencies to latest versions..."
+
+# Update all dependencies to latest versions
+npx npm-check-updates -u
+
+# Install updated dependencies
+echo "📦 Installing updated dependencies..."
+npm install
+
+# Run all tests to catch breaking changes
+echo "🧪 Running all tests (unit + E2E) to verify compatibility..."
+npm run test:all
+
+# If tests pass, allow the push
+echo "✅ All checks passed! Proceeding with push..."

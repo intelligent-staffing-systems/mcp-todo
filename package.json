@@ -9,8 +9,10 @@
     "test:ui": "vitest --ui",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
+    "test:all": "npm test && npm run test:e2e",
     "start": "node server.js",
-    "dev": "node --watch server.js"
+    "dev": "node --watch server.js",
+    "prepare": "husky"
   },
   "repository": {
     "type": "git",
@@ -36,7 +38,9 @@
   "devDependencies": {
     "@playwright/test": "^1.56.1",
     "@vitest/ui": "^4.0.8",
+    "husky": "^9.1.7",
     "jsdom": "^27.1.0",
+    "npm-check-updates": "^19.1.2",
     "vitest": "^4.0.8"
   }
 }
