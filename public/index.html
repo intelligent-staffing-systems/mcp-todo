@@ -29,9 +29,18 @@
     <!-- Left: Chat Interface -->
     <div class="w-1/2 flex flex-col border-r border-gray-200">
       <!-- Header -->
-      <header class="px-6 py-5 border-b border-gray-200">
-        <h1 class="text-2xl font-bold text-gray-800">Chat Assistant</h1>
-        <p class="text-sm text-gray-500 mt-1">Powered by Claude & MCP</p>
+      <header class="px-6 py-5 border-b border-gray-200 flex justify-between items-center">
+        <div>
+          <h1 class="text-2xl font-bold text-gray-800">Chat Assistant</h1>
+          <p class="text-sm text-gray-500 mt-1">Powered by Claude & MCP</p>
+        </div>
+        <button
+          id="clear-chat-btn"
+          class="px-4 py-2 text-sm bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
+          title="Clear chat history"
+        >
+          Clear Chat
+        </button>
       </header>
 
       <!-- Messages Container -->

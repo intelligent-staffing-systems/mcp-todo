@@ -507,10 +507,17 @@ export class TodoListManager {
     conversationHistory = conversationManager.load();
     conversationHistory.forEach(msg => {
       if (msg.role === 'user') {
-        uiManager.addMessage('user', msg.content);
+        // Handle both string and array content
+        const content = typeof msg.content === 'string'
+          ? msg.content
+          : msg.content[0]?.text || JSON.stringify(msg.content);
+        uiManager.addMessage('user', content);
       } else if (msg.role === 'assistant') {
-        const textContent = msg.content.find(block => block.type === 'text');
-        if (textContent) {
+        // Handle array content for assistant messages
+        const textContent = Array.isArray(msg.content)
+          ? msg.content.find(block => block.type === 'text')
+          : { text: msg.content };
+        if (textContent && textContent.text) {
           uiManager.addMessage('assistant', textContent.text);
         }
       }
@@ -572,6 +579,30 @@ export class TodoListManager {
     messageInput.value = '';
     sendMessage(message);
   });
+
+  // Handle Clear Chat button
+  const clearChatBtn = document.getElementById('clear-chat-btn');
+  if (clearChatBtn) {
+    clearChatBtn.addEventListener('click', () => {
+      if (confirm('Are you sure you want to clear the chat history?')) {
+        // Clear localStorage
+        conversationManager.clear();
+
+        // Reset conversation history
+        conversationHistory = [];
+
+        // Clear messages from UI
+        const messagesContainer = document.getElementById('messages');
+        if (messagesContainer) {
+          messagesContainer.innerHTML = '';
+        }
+
+        // Show success message
+        uiManager.showStatus('Chat history cleared', 'success');
+        setTimeout(() => uiManager.clearStatus(), 2000);
+      }
+    });
+  }
 
   // Initialize
   loadHistory();
