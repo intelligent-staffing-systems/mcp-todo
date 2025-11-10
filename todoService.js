@@ -52,7 +52,7 @@ class TodoServiceImpl {
       params.push(validatedFilters.completed ? 1 : 0);
     }
 
-    query += ' ORDER BY priority ASC, createdAt DESC';
+    query += ' ORDER BY displayOrder ASC, priority ASC, createdAt DESC';
 
     const rows = this.db.prepare(query).all(...params);
 
@@ -84,9 +84,13 @@ class TodoServiceImpl {
     const id = randomUUID();
     const now = new Date().toISOString();
 
+    // Get the highest displayOrder and add 1
+    const maxOrderResult = this.db.prepare('SELECT MAX(displayOrder) as maxOrder FROM todos').get();
+    const displayOrder = (maxOrderResult.maxOrder || 0) + 1;
+
     this.db.prepare(`
-      INSERT INTO todos (id, text, completed, starred, priority, tags, dueDate, createdAt, updatedAt)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+      INSERT INTO todos (id, text, completed, starred, priority, tags, dueDate, displayOrder, createdAt, updatedAt)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `).run(
       id,
       text.trim(),
@@ -95,6 +99,7 @@ class TodoServiceImpl {
       validatedMetadata.priority || 3,
       JSON.stringify(validatedMetadata.tags || []),
       validatedMetadata.dueDate ? validatedMetadata.dueDate.toISOString() : null,
+      displayOrder,
       now,
       now
     );
@@ -141,6 +146,10 @@ class TodoServiceImpl {
     if (validatedUpdates.dueDate !== undefined) {
       fields.push('dueDate = ?');
       params.push(validatedUpdates.dueDate ? validatedUpdates.dueDate.toISOString() : null);
+    }
+    if (validatedUpdates.displayOrder !== undefined) {
+      fields.push('displayOrder = ?');
+      params.push(validatedUpdates.displayOrder);
     }
 
     fields.push('updatedAt = ?');
@@ -190,6 +199,28 @@ class TodoServiceImpl {
   }
 
   /**
+   * Reorder todos based on an array of IDs
+   * @param {string[]} orderedIds - Array of todo IDs in desired order
+   * @returns {void}
+   */
+  reorderTodos(orderedIds) {
+    if (!Array.isArray(orderedIds)) {
+      throw new Error('orderedIds must be an array');
+    }
+
+    const updateStmt = this.db.prepare('UPDATE todos SET displayOrder = ?, updatedAt = ? WHERE id = ?');
+    const now = new Date().toISOString();
+
+    const transaction = this.db.transaction((ids) => {
+      ids.forEach((id, index) => {
+        updateStmt.run(index, now, id);
+      });
+    });
+
+    transaction(orderedIds);
+  }
+
+  /**
    * @param {Object} row
    * @returns {Todo}
    */
@@ -202,6 +233,7 @@ class TodoServiceImpl {
       priority: row.priority,
       tags: JSON.parse(row.tags),
       dueDate: row.dueDate ? new Date(row.dueDate) : null,
+      displayOrder: row.displayOrder || 0,
       createdAt: new Date(row.createdAt),
       updatedAt: new Date(row.updatedAt)
     };

@@ -3,7 +3,7 @@ import express from 'express';
 import cors from 'cors';
 import Anthropic from '@anthropic-ai/sdk';
 import TodoServiceImpl from './todoService.js';
-import { CreateTodoRequestSchema, UpdateTodoRequestSchema } from './schemas.js';
+import { CreateTodoRequestSchema, UpdateTodoRequestSchema, ReorderTodosRequestSchema } from './schemas.js';
 import logger from './logger.js';
 
 const app = express();
@@ -381,6 +381,7 @@ app.patch('/api/todos/:id', (req, res) => {
       priority: validatedData.priority,
       tags: validatedData.tags,
       dueDate: validatedData.dueDate ? new Date(validatedData.dueDate) : undefined,
+      displayOrder: validatedData.displayOrder,
     };
 
     const todo = todoService.updateTodo(id, updates);
@@ -410,6 +411,27 @@ app.delete('/api/todos/:id', (req, res) => {
   } catch (error) {
     console.error('Delete todo error:', error);
     res.status(500).json({ error: 'Failed to delete todo', details: error.message });
+  }
+});
+
+app.post('/api/todos/reorder', (req, res) => {
+  try {
+    // Validate request body
+    const validatedData = ReorderTodosRequestSchema.parse(req.body);
+
+    req.log.info({ orderedIds: validatedData.orderedIds.length }, 'Reordering todos');
+
+    todoService.reorderTodos(validatedData.orderedIds);
+
+    req.log.info('Todos reordered successfully');
+    res.status(200).json({ success: true, message: 'Todos reordered successfully' });
+  } catch (error) {
+    req.log.error({ error: error.message, type: error.name, stack: error.stack }, 'Failed to reorder todos');
+    if (error.name === 'ZodError') {
+      res.status(400).json({ error: 'Validation failed', details: error.message, requestId: req.requestId });
+    } else {
+      res.status(500).json({ error: 'Failed to reorder todos', details: error.message, requestId: req.requestId });
+    }
   }
 });
 

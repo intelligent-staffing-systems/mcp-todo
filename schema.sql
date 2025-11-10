@@ -7,6 +7,7 @@ CREATE TABLE IF NOT EXISTS todos (
   priority INTEGER DEFAULT 3,
   tags TEXT DEFAULT '[]',
   dueDate TEXT,
+  displayOrder INTEGER DEFAULT 0,
   createdAt TEXT DEFAULT CURRENT_TIMESTAMP,
   updatedAt TEXT DEFAULT CURRENT_TIMESTAMP
 );
@@ -16,3 +17,4 @@ CREATE INDEX IF NOT EXISTS idx_tags ON todos(tags);
 CREATE INDEX IF NOT EXISTS idx_starred ON todos(starred);
 CREATE INDEX IF NOT EXISTS idx_priority ON todos(priority);
 CREATE INDEX IF NOT EXISTS idx_completed ON todos(completed);
+CREATE INDEX IF NOT EXISTS idx_displayOrder ON todos(displayOrder);

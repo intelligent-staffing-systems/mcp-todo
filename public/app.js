@@ -215,6 +215,27 @@ export class ApiClient {
       throw new Error(`HTTP ${response.status}: ${response.statusText}`);
     }
   }
+
+  /**
+   * Reorder todos
+   * @param {string[]} orderedIds
+   * @returns {Promise<Object>}
+   */
+  async reorderTodos(orderedIds) {
+    const response = await fetch(`${this.baseUrl}/api/todos/reorder`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ orderedIds }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    }
+
+    return await response.json();
+  }
 }
 
 /**
@@ -311,6 +332,7 @@ export class TodoListManager {
     this.quickAddInput = document.getElementById('quick-add-input');
     this.pollingInterval = null;
     this.currentTodos = [];
+    this.draggedElement = null;
 
     this.setupEventListeners();
   }
@@ -428,8 +450,17 @@ export class TodoListManager {
    */
   createTodoElement(todo) {
     const div = document.createElement('div');
-    div.className = 'todo-item flex items-center gap-3 p-3 bg-white border border-gray-200 rounded-lg hover:shadow-sm transition-shadow';
+    div.className = 'todo-item flex items-center gap-3 p-3 bg-white border border-gray-200 rounded-lg hover:shadow-sm transition-shadow cursor-move';
     div.dataset.id = todo.id;
+    div.draggable = true;
+
+    // Drag event listeners
+    div.addEventListener('dragstart', (e) => this.handleDragStart(e));
+    div.addEventListener('dragend', (e) => this.handleDragEnd(e));
+    div.addEventListener('dragover', (e) => this.handleDragOver(e));
+    div.addEventListener('drop', (e) => this.handleDrop(e));
+    div.addEventListener('dragenter', (e) => this.handleDragEnter(e));
+    div.addEventListener('dragleave', (e) => this.handleDragLeave(e));
 
     // Checkbox
     const checkbox = document.createElement('input');
@@ -499,6 +530,7 @@ export class TodoListManager {
     }
   }
 
+
   /**
    * Quick add a new todo
    * @param {string} text
@@ -546,6 +578,81 @@ export class TodoListManager {
       clearInterval(this.pollingInterval);
       this.pollingInterval = null;
     }
+  }
+
+  /**
+   * Drag and drop event handlers
+   */
+  handleDragStart(e) {
+    this.draggedElement = e.target;
+    e.target.style.opacity = '0.4';
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/html', e.target.innerHTML);
+  }
+
+  handleDragEnd(e) {
+    e.target.style.opacity = '1';
+
+    // Remove all drag-over classes
+    const items = this.todosContainer.querySelectorAll('.todo-item');
+    items.forEach(item => {
+      item.classList.remove('drag-over');
+    });
+  }
+
+  handleDragOver(e) {
+    if (e.preventDefault) {
+      e.preventDefault();
+    }
+    e.dataTransfer.dropEffect = 'move';
+    return false;
+  }
+
+  handleDragEnter(e) {
+    if (e.target.classList.contains('todo-item')) {
+      e.target.classList.add('drag-over');
+    }
+  }
+
+  handleDragLeave(e) {
+    if (e.target.classList.contains('todo-item')) {
+      e.target.classList.remove('drag-over');
+    }
+  }
+
+  async handleDrop(e) {
+    if (e.stopPropagation) {
+      e.stopPropagation();
+    }
+
+    if (this.draggedElement !== e.target && e.target.classList.contains('todo-item')) {
+      // Get all todo items
+      const items = Array.from(this.todosContainer.querySelectorAll('.todo-item'));
+      const draggedIndex = items.indexOf(this.draggedElement);
+      const targetIndex = items.indexOf(e.target);
+
+      // Reorder in DOM
+      if (draggedIndex < targetIndex) {
+        e.target.parentNode.insertBefore(this.draggedElement, e.target.nextSibling);
+      } else {
+        e.target.parentNode.insertBefore(this.draggedElement, e.target);
+      }
+
+      // Get new order of IDs
+      const newOrder = Array.from(this.todosContainer.querySelectorAll('.todo-item'))
+        .map(item => item.dataset.id);
+
+      // Send reorder request to server
+      try {
+        await this.apiClient.reorderTodos(newOrder);
+      } catch (error) {
+        console.error('Failed to reorder todos:', error);
+        // Refresh to restore original order on error
+        await this.refresh();
+      }
+    }
+
+    return false;
   }
 }
 

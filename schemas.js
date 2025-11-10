@@ -14,6 +14,7 @@ export const TodoSchema = z.object({
   priority: z.number().int().min(1).max(5),
   tags: z.array(z.string()),
   dueDate: z.date().nullable(),
+  displayOrder: z.number().int(),
   createdAt: z.date(),
   updatedAt: z.date(),
 });
@@ -27,6 +28,7 @@ export const TodoUpdateSchema = z.object({
   priority: z.number().int().min(1).max(5).optional(),
   tags: z.array(z.string()).optional(),
   dueDate: z.date().nullable().optional(),
+  displayOrder: z.number().int().optional(),
 });
 
 // Todo creation metadata
@@ -106,6 +108,11 @@ export const UpdateTodoRequestSchema = z.object({
   priority: z.number().int().min(1).max(5).optional(),
   tags: z.array(z.string()).optional(),
   dueDate: z.string().datetime().optional(), // ISO string from REST API
+  displayOrder: z.number().int().optional(),
+});
+
+export const ReorderTodosRequestSchema = z.object({
+  orderedIds: z.array(z.string().uuid()),
 });
 
 export const TodoFiltersRequestSchema = z.object({

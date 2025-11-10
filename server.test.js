@@ -149,10 +149,10 @@ describe('REST API Endpoints', () => {
         .expect(200);
 
       expect(response.body).toHaveLength(2);
-      // Todos are sorted by priority (default 3) then by createdAt DESC
-      // So newer todos appear first
-      expect(response.body[0].text).toBe('Test todo 2');
-      expect(response.body[1].text).toBe('Test todo 1');
+      // Todos are sorted by displayOrder ASC, priority ASC, then by createdAt DESC
+      // displayOrder is assigned sequentially when created, so older todos have lower displayOrder
+      expect(response.body[0].text).toBe('Test todo 1');
+      expect(response.body[1].text).toBe('Test todo 2');
     });
 
     it('should filter todos by starred status', async () => {
