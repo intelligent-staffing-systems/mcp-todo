@@ -332,16 +332,17 @@ export class TodoListManager {
   }
 
   /**
-   * Render todos to the DOM
+   * Render todos to the DOM (smart diff-based update to prevent flickering)
    * @param {Todo[]} todos
    */
   render(todos) {
     if (!this.todosContainer) return;
 
     this.currentTodos = todos;
-    this.todosContainer.innerHTML = '';
 
+    // Handle empty state
     if (todos.length === 0) {
+      this.todosContainer.innerHTML = '';
       const emptyState = document.createElement('div');
       emptyState.className = 'text-center text-gray-400 py-8';
       emptyState.textContent = 'No todos yet. Add one to get started!';
@@ -349,10 +350,69 @@ export class TodoListManager {
       return;
     }
 
-    todos.forEach(todo => {
-      const todoElement = this.createTodoElement(todo);
-      this.todosContainer.appendChild(todoElement);
+    // Get existing todo elements
+    const existingElements = Array.from(this.todosContainer.querySelectorAll('.todo-item'));
+    const existingIds = new Set(existingElements.map(el => el.dataset.id));
+    const newIds = new Set(todos.map(t => t.id));
+
+    // Remove todos that no longer exist
+    existingElements.forEach(el => {
+      if (!newIds.has(el.dataset.id)) {
+        el.remove();
+      }
     });
+
+    // Add or update todos
+    todos.forEach((todo, index) => {
+      const existingElement = existingElements.find(el => el.dataset.id === todo.id);
+
+      if (existingElement) {
+        // Update existing element only if data changed
+        this.updateTodoElement(existingElement, todo);
+
+        // Reorder if necessary
+        const currentIndex = Array.from(this.todosContainer.children).indexOf(existingElement);
+        if (currentIndex !== index) {
+          if (index === 0) {
+            this.todosContainer.prepend(existingElement);
+          } else {
+            const prevElement = this.todosContainer.children[index];
+            this.todosContainer.insertBefore(existingElement, prevElement);
+          }
+        }
+      } else {
+        // Create new element
+        const newElement = this.createTodoElement(todo);
+        if (index >= this.todosContainer.children.length) {
+          this.todosContainer.appendChild(newElement);
+        } else {
+          this.todosContainer.insertBefore(newElement, this.todosContainer.children[index]);
+        }
+      }
+    });
+  }
+
+  /**
+   * Update an existing todo element without recreating it
+   * @param {HTMLElement} element
+   * @param {Todo} todo
+   */
+  updateTodoElement(element, todo) {
+    // Update checkbox
+    const checkbox = element.querySelector('input[type="checkbox"]');
+    if (checkbox && checkbox.checked !== todo.completed) {
+      checkbox.checked = todo.completed;
+    }
+
+    // Update text and styling
+    const textSpan = element.querySelector('span:first-of-type');
+    if (textSpan) {
+      textSpan.textContent = todo.text;
+      textSpan.className = `flex-1 ${todo.completed ? 'line-through text-gray-400' : 'text-gray-800'}`;
+    }
+
+    // Note: Priority and star badges are not updated dynamically for simplicity
+    // They will be recreated on next full refresh if needed
   }
 
   /**
