@@ -350,6 +350,12 @@ export class TodoListManager {
       return;
     }
 
+    // Remove empty state if present (transition from empty to filled)
+    const emptyState = this.todosContainer.querySelector('.text-center');
+    if (emptyState) {
+      emptyState.remove();
+    }
+
     // Get existing todo elements
     const existingElements = Array.from(this.todosContainer.querySelectorAll('.todo-item'));
     const existingIds = new Set(existingElements.map(el => el.dataset.id));
