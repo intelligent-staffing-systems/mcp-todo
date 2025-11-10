@@ -16,7 +16,9 @@ import {
   SetPriorityInputSchema,
 } from './schemas.js';
 
-const service = new TodoServiceImpl('./todos.db');
+// Use environment variable for DB path, default to local file
+const dbPath = process.env.DB_PATH || './todos.db';
+const service = new TodoServiceImpl(dbPath);
 
 const server = new Server(
   {
