@@ -1,6 +1,3 @@
-#!/usr/bin/env sh
-. "$(dirname -- "$0")/_/husky.sh"
-
 echo "🔄 Pre-push hook: Updating dependencies to latest versions..."
 
 # Update all dependencies to latest versions
