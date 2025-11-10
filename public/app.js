@@ -546,6 +546,9 @@ export class TodoListManager {
       uiManager.addMessage('assistant', data.response);
       uiManager.clearStatus();
 
+      // Trigger immediate todo list refresh after chat completes (likely modified todos)
+      todoListManager.refresh();
+
     } catch (error) {
       console.error('Chat error:', error);
       uiManager.showStatus(`Error: ${error.message}`, 'error');
@@ -609,8 +612,8 @@ export class TodoListManager {
   checkHealth();
   messageInput.focus();
 
-  // Start todo list polling (2 second interval)
-  todoListManager.startPolling(2000);
+  // Start todo list polling (5 second interval - reduced from 2s to minimize visual glitching)
+  todoListManager.startPolling(5000);
 })();
 
 // Load schemas for tests
