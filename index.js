@@ -7,6 +7,14 @@ import {
   ListToolsRequestSchema,
 } from '@modelcontextprotocol/sdk/types.js';
 import TodoServiceImpl from './todoService.js';
+import {
+  CreateTodoInputSchema,
+  ListTodosInputSchema,
+  UpdateTodoInputSchema,
+  DeleteTodoInputSchema,
+  ToggleStarredInputSchema,
+  SetPriorityInputSchema,
+} from './schemas.js';
 
 const service = new TodoServiceImpl('./todos.db');
 
@@ -191,95 +199,53 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
   try {
     switch (name) {
       case 'create_todo': {
-        const metadata = {};
-        if (args.starred !== undefined) metadata.starred = args.starred;
-        if (args.priority !== undefined) metadata.priority = args.priority;
-        if (args.tags !== undefined) metadata.tags = args.tags;
-        if (args.dueDate !== undefined) metadata.dueDate = new Date(args.dueDate);
-
-        const todo = service.createTodo(args.text, metadata);
-        return {
-          content: [
-            {
-              type: 'text',
-              text: JSON.stringify(todo, null, 2),
-            },
-          ],
+        const input = CreateTodoInputSchema.parse(args);
+        const metadata = {
+          starred: input.starred,
+          priority: input.priority,
+          tags: input.tags,
+          dueDate: input.dueDate ? new Date(input.dueDate) : undefined,
         };
+        const todo = service.createTodo(input.text, metadata);
+        return { content: [{ type: 'text', text: JSON.stringify(todo, null, 2) }] };
       }
 
       case 'list_todos': {
-        const filters = {};
-        if (args.starred !== undefined) filters.starred = args.starred;
-        if (args.priority !== undefined) filters.priority = args.priority;
-        if (args.tags !== undefined) filters.tags = args.tags;
-        if (args.completed !== undefined) filters.completed = args.completed;
-
+        const filters = ListTodosInputSchema.parse(args);
         const todos = service.getTodos(filters);
-        return {
-          content: [
-            {
-              type: 'text',
-              text: JSON.stringify(todos, null, 2),
-            },
-          ],
-        };
+        return { content: [{ type: 'text', text: JSON.stringify(todos, null, 2) }] };
       }
 
       case 'update_todo': {
-        const updates = {};
-        if (args.text !== undefined) updates.text = args.text;
-        if (args.completed !== undefined) updates.completed = args.completed;
-        if (args.starred !== undefined) updates.starred = args.starred;
-        if (args.priority !== undefined) updates.priority = args.priority;
-        if (args.tags !== undefined) updates.tags = args.tags;
-        if (args.dueDate !== undefined) updates.dueDate = new Date(args.dueDate);
-
-        const todo = service.updateTodo(args.id, updates);
-        return {
-          content: [
-            {
-              type: 'text',
-              text: JSON.stringify(todo, null, 2),
-            },
-          ],
+        const input = UpdateTodoInputSchema.parse(args);
+        const updates = {
+          text: input.text,
+          completed: input.completed,
+          starred: input.starred,
+          priority: input.priority,
+          tags: input.tags,
+          dueDate: input.dueDate ? new Date(input.dueDate) : undefined,
         };
+        const todo = service.updateTodo(input.id, updates);
+        return { content: [{ type: 'text', text: JSON.stringify(todo, null, 2) }] };
       }
 
       case 'delete_todo': {
-        const result = service.deleteTodo(args.id);
-        return {
-          content: [
-            {
-              type: 'text',
-              text: result ? 'Todo deleted successfully' : 'Todo not found',
-            },
-          ],
-        };
+        const input = DeleteTodoInputSchema.parse(args);
+        const result = service.deleteTodo(input.id);
+        return { content: [{ type: 'text', text: result ? 'Todo deleted successfully' : 'Todo not found' }] };
       }
 
       case 'toggle_starred': {
-        const todo = service.toggleStarred(args.id, args.starred);
-        return {
-          content: [
-            {
-              type: 'text',
-              text: JSON.stringify(todo, null, 2),
-            },
-          ],
-        };
+        const input = ToggleStarredInputSchema.parse(args);
+        const todo = service.toggleStarred(input.id, input.starred);
+        return { content: [{ type: 'text', text: JSON.stringify(todo, null, 2) }] };
       }
 
       case 'set_priority': {
-        const todo = service.setPriority(args.id, args.priority);
-        return {
-          content: [
-            {
-              type: 'text',
-              text: JSON.stringify(todo, null, 2),
-            },
-          ],
-        };
+        const input = SetPriorityInputSchema.parse(args);
+        const todo = service.setPriority(input.id, input.priority);
+        return { content: [{ type: 'text', text: JSON.stringify(todo, null, 2) }] };
       }
 
       default:

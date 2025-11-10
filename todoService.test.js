@@ -1,4 +1,4 @@
-import { beforeEach, afterEach, describe, it, expect } from '@jest/globals';
+import { beforeEach, afterEach, describe, it, expect } from 'vitest';
 import TodoServiceImpl from './todoService.js';
 import { unlinkSync } from 'fs';
 
@@ -114,9 +114,11 @@ describe('TodoService', () => {
     });
 
     it('should throw error for non-existent todo', () => {
+      const todo = service.createTodo('Test');
+      const fakeId = '00000000-0000-0000-0000-000000000000';
       expect(() => {
-        service.updateTodo('non-existent-id', { text: 'Test' });
-      }).toThrow('Todo non-existent-id not found');
+        service.updateTodo(fakeId, { text: 'Test' });
+      }).toThrow(`Todo ${fakeId} not found`);
     });
   });
 
@@ -130,7 +132,8 @@ describe('TodoService', () => {
     });
 
     it('should return false for non-existent todo', () => {
-      const result = service.deleteTodo('non-existent-id');
+      const fakeId = '00000000-0000-0000-0000-000000000000';
+      const result = service.deleteTodo(fakeId);
       expect(result).toBe(false);
     });
   });
@@ -161,6 +164,36 @@ describe('TodoService', () => {
       const todo = service.createTodo('Tag me');
       const updated = service.setTags(todo.id, ['work', 'urgent']);
       expect(updated.tags).toEqual(['work', 'urgent']);
+    });
+  });
+
+  describe('Validation', () => {
+    it('should reject empty todo text', () => {
+      expect(() => service.createTodo('')).toThrow('Todo text is required and cannot be empty');
+      expect(() => service.createTodo('   ')).toThrow('Todo text is required and cannot be empty');
+    });
+
+    it('should reject invalid priority', () => {
+      expect(() => service.createTodo('Test', { priority: 0 })).toThrow();
+      expect(() => service.createTodo('Test', { priority: 6 })).toThrow();
+      expect(() => service.createTodo('Test', { priority: 3.5 })).toThrow();
+    });
+
+    it('should reject invalid filters', () => {
+      expect(() => service.getTodos({ priority: 10 })).toThrow();
+      expect(() => service.getTodos({ starred: 'yes' })).toThrow();
+    });
+
+    it('should reject invalid todo ID format', () => {
+      expect(() => service.updateTodo('not-a-uuid', { text: 'Test' })).toThrow();
+      expect(() => service.deleteTodo('invalid-id')).toThrow();
+      expect(() => service.toggleStarred('bad-id', true)).toThrow();
+    });
+
+    it('should reject invalid update fields', () => {
+      const todo = service.createTodo('Test');
+      expect(() => service.updateTodo(todo.id, { priority: 0 })).toThrow();
+      expect(() => service.updateTodo(todo.id, { text: '' })).toThrow();
     });
   });
 });
