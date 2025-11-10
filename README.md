@@ -97,11 +97,19 @@ git push --no-verify
 - SQLite with better-sqlite3
 - Simple schema: todos table with id, title, completed, created_at
 
+## Documentation
+
+- **[Philosophy](docs/PHILOSOPHY.md)** - Development principles and decision rationale
+- **[Architecture](docs/ARCHITECTURE.md)** - System design and component interactions
+- **[Testing](docs/TESTING.md)** - Testing strategy and guidelines
+- **[Deployment](docs/DEPLOYMENT.md)** - Fly.io deployment guide
+
 ## Development Philosophy
 
-1. **TDD First**: Tests drive implementation
-   - types.js (JSDoc) → Zod schemas → failing tests → implementation
+See [docs/PHILOSOPHY.md](docs/PHILOSOPHY.md) for full details. Key principles:
+
+1. **User Story First**: Start with user needs, then research APIs, then types → Zod → tests → implementation
 2. **Type Safety**: JSDoc for IDE support, Zod for runtime validation
-3. **No Build Step**: Keep it simple with vanilla JS + CDN
-4. **Stateless Backend**: Client manages conversation context
-5. **Living on the Edge**: Always use latest dependency versions
+3. **No Build Step**: Vanilla JS + CDN for fast iteration
+4. **Stateless HTTP**: Server holds no session state (but persists data via SQLite)
+5. **Living on the Edge**: Always use latest dependency versions via automated pre-push hook
