@@ -367,6 +367,29 @@ app.post('/api/todos', (req, res) => {
   }
 });
 
+// IMPORTANT: This route must come BEFORE /api/todos/:id routes
+// Otherwise Express will match "reorder" as an ID parameter
+app.post('/api/todos/reorder', (req, res) => {
+  try {
+    // Validate request body
+    const validatedData = ReorderTodosRequestSchema.parse(req.body);
+
+    req.log.info({ orderedIds: validatedData.orderedIds.length }, 'Reordering todos');
+
+    todoService.reorderTodos(validatedData.orderedIds);
+
+    req.log.info('Todos reordered successfully');
+    res.status(200).json({ success: true, message: 'Todos reordered successfully' });
+  } catch (error) {
+    req.log.error({ error: error.message, type: error.name, stack: error.stack }, 'Failed to reorder todos');
+    if (error.name === 'ZodError') {
+      res.status(400).json({ error: 'Validation failed', details: error.message, requestId: req.requestId });
+    } else {
+      res.status(500).json({ error: 'Failed to reorder todos', details: error.message, requestId: req.requestId });
+    }
+  }
+});
+
 app.patch('/api/todos/:id', (req, res) => {
   try {
     const { id } = req.params;
@@ -411,27 +434,6 @@ app.delete('/api/todos/:id', (req, res) => {
   } catch (error) {
     console.error('Delete todo error:', error);
     res.status(500).json({ error: 'Failed to delete todo', details: error.message });
-  }
-});
-
-app.post('/api/todos/reorder', (req, res) => {
-  try {
-    // Validate request body
-    const validatedData = ReorderTodosRequestSchema.parse(req.body);
-
-    req.log.info({ orderedIds: validatedData.orderedIds.length }, 'Reordering todos');
-
-    todoService.reorderTodos(validatedData.orderedIds);
-
-    req.log.info('Todos reordered successfully');
-    res.status(200).json({ success: true, message: 'Todos reordered successfully' });
-  } catch (error) {
-    req.log.error({ error: error.message, type: error.name, stack: error.stack }, 'Failed to reorder todos');
-    if (error.name === 'ZodError') {
-      res.status(400).json({ error: 'Validation failed', details: error.message, requestId: req.requestId });
-    } else {
-      res.status(500).json({ error: 'Failed to reorder todos', details: error.message, requestId: req.requestId });
-    }
   }
 });
 

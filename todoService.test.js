@@ -167,6 +167,94 @@ describe('TodoService', () => {
     });
   });
 
+  describe('reorderTodos', () => {
+    it('should reorder todos based on provided ID array', () => {
+      const todo1 = service.createTodo('First');
+      const todo2 = service.createTodo('Second');
+      const todo3 = service.createTodo('Third');
+
+      // Initial order: First (0), Second (1), Third (2)
+      let todos = service.getTodos();
+      expect(todos[0].text).toBe('First');
+      expect(todos[1].text).toBe('Second');
+      expect(todos[2].text).toBe('Third');
+
+      // Reorder: Third, First, Second
+      service.reorderTodos([todo3.id, todo1.id, todo2.id]);
+
+      todos = service.getTodos();
+      expect(todos[0].text).toBe('Third');
+      expect(todos[0].displayOrder).toBe(0);
+      expect(todos[1].text).toBe('First');
+      expect(todos[1].displayOrder).toBe(1);
+      expect(todos[2].text).toBe('Second');
+      expect(todos[2].displayOrder).toBe(2);
+    });
+
+    it('should handle partial reordering (only some IDs)', () => {
+      const todo1 = service.createTodo('First');
+      const todo2 = service.createTodo('Second');
+      const todo3 = service.createTodo('Third');
+
+      // Reorder only first two
+      service.reorderTodos([todo2.id, todo1.id]);
+
+      const todos = service.getTodos();
+      expect(todos[0].text).toBe('Second');
+      expect(todos[0].displayOrder).toBe(0);
+      expect(todos[1].text).toBe('First');
+      expect(todos[1].displayOrder).toBe(1);
+      // Third should still have its original displayOrder (3)
+      // Because it was created with max(displayOrder) + 1 = 3
+      expect(todos[2].text).toBe('Third');
+      expect(todos[2].displayOrder).toBe(3);
+    });
+
+    it('should reject non-array input', () => {
+      expect(() => service.reorderTodos('not-an-array')).toThrow('orderedIds must be an array');
+      expect(() => service.reorderTodos(null)).toThrow('orderedIds must be an array');
+      expect(() => service.reorderTodos(123)).toThrow('orderedIds must be an array');
+    });
+
+    it('should handle empty array', () => {
+      service.createTodo('Test');
+      expect(() => service.reorderTodos([])).not.toThrow();
+    });
+
+    it('should update updatedAt timestamp when reordering', async () => {
+      const todo = service.createTodo('Test');
+      const originalUpdatedAt = todo.updatedAt;
+
+      // Wait a bit to ensure timestamp difference
+      await new Promise(resolve => setTimeout(resolve, 10));
+
+      service.reorderTodos([todo.id]);
+      const updated = service.getTodos()[0];
+      expect(updated.updatedAt.getTime()).toBeGreaterThan(originalUpdatedAt.getTime());
+    });
+
+    it('should maintain displayOrder integrity after multiple reorders', () => {
+      const todo1 = service.createTodo('A');
+      const todo2 = service.createTodo('B');
+      const todo3 = service.createTodo('C');
+
+      // First reorder
+      service.reorderTodos([todo3.id, todo2.id, todo1.id]);
+      let todos = service.getTodos();
+      expect(todos.map(t => t.text)).toEqual(['C', 'B', 'A']);
+
+      // Second reorder
+      service.reorderTodos([todo1.id, todo3.id, todo2.id]);
+      todos = service.getTodos();
+      expect(todos.map(t => t.text)).toEqual(['A', 'C', 'B']);
+
+      // Verify displayOrder values are sequential
+      expect(todos[0].displayOrder).toBe(0);
+      expect(todos[1].displayOrder).toBe(1);
+      expect(todos[2].displayOrder).toBe(2);
+    });
+  });
+
   describe('Validation', () => {
     it('should reject empty todo text', () => {
       expect(() => service.createTodo('')).toThrow('Todo text is required and cannot be empty');
