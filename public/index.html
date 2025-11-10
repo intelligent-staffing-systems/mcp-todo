@@ -90,20 +90,35 @@
       </div>
 
       <!-- Quick Add Form -->
-      <form id="quick-add-form" class="px-6 py-4 border-t border-gray-200 flex gap-3">
-        <input
-          type="text"
-          id="quick-add-input"
-          placeholder="Quick add todo..."
-          autocomplete="off"
-          class="flex-1 px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-indigo-500 transition-colors"
-        >
-        <button
-          type="submit"
-          class="px-6 py-3 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700 transition-colors"
-        >
-          Add
-        </button>
+      <form id="quick-add-form" class="px-6 py-4 border-t border-gray-200">
+        <div class="flex gap-3">
+          <input
+            type="text"
+            id="quick-add-input"
+            placeholder="Quick add todo..."
+            autocomplete="off"
+            class="flex-1 px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-indigo-500 transition-colors"
+          >
+          <select
+            id="quick-add-points"
+            class="px-3 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-indigo-500 transition-colors bg-white"
+            title="Story Points"
+          >
+            <option value="">Points</option>
+            <option value="1">1</option>
+            <option value="2">2</option>
+            <option value="3">3</option>
+            <option value="5">5</option>
+            <option value="8">8</option>
+            <option value="13">13</option>
+          </select>
+          <button
+            type="submit"
+            class="px-6 py-3 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700 transition-colors"
+          >
+            Add
+          </button>
+        </div>
       </form>
     </div>
   </div>
