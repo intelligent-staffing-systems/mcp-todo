@@ -1,0 +1,14 @@
+{
+  "mcpServers": {
+    "todo": {
+      "type": "stdio",
+      "command": "node",
+      "args": ["/Users/ldraney/todo/index.js"],
+      "env": {
+        "NODE_ENV": "production"
+      },
+      "description": "Personal todo management with natural language interface - create, list, prioritize, star, tag, and manage todos",
+      "alwaysAllow": ["list_todos", "create_todo", "toggle_starred", "set_priority"]
+    }
+  }
+}
