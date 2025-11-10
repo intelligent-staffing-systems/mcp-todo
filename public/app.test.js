@@ -6,7 +6,7 @@
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { JSDOM } from 'jsdom';
-import { ConversationManager, ApiClient, UIManager } from './app.js';
+import { ConversationManager, ApiClient, UIManager, MobileTabManager } from './app.js';
 
 // Setup DOM environment for tests
 let dom;
@@ -409,5 +409,93 @@ describe('TodoListManager', () => {
     expect(todoListManager.pollingInterval).toBeNull();
 
     vi.useRealTimers();
+  });
+});
+
+describe('MobileTabManager', () => {
+  let tabManager;
+  let chatPanel, todosPanel, chatTabButton, todosTabButton;
+
+  beforeEach(() => {
+    // Create mobile tab UI elements
+    document.body.innerHTML = `
+      <div id="mobile-tabs" class="md:hidden">
+        <button id="chat-tab" class="tab-button active">Chat</button>
+        <button id="todos-tab" class="tab-button">Todos</button>
+      </div>
+      <div id="chat-panel" class="panel active">Chat Panel</div>
+      <div id="todos-panel" class="panel hidden">Todos Panel</div>
+    `;
+
+    chatPanel = document.getElementById('chat-panel');
+    todosPanel = document.getElementById('todos-panel');
+    chatTabButton = document.getElementById('chat-tab');
+    todosTabButton = document.getElementById('todos-tab');
+
+    // Instantiate MobileTabManager
+    tabManager = new MobileTabManager();
+  });
+
+  it('should initialize with chat tab active', () => {
+    expect(tabManager.activeTab).toBe('chat');
+  });
+
+  it('should switch to todos tab', () => {
+    tabManager.switchTab('todos');
+
+    expect(tabManager.activeTab).toBe('todos');
+    expect(chatPanel.classList.contains('hidden')).toBe(true);
+    expect(todosPanel.classList.contains('hidden')).toBe(false);
+    expect(chatTabButton.classList.contains('active')).toBe(false);
+    expect(todosTabButton.classList.contains('active')).toBe(true);
+  });
+
+  it('should switch back to chat tab', () => {
+    tabManager.switchTab('todos');
+    tabManager.switchTab('chat');
+
+    expect(tabManager.activeTab).toBe('chat');
+    expect(chatPanel.classList.contains('hidden')).toBe(false);
+    expect(todosPanel.classList.contains('hidden')).toBe(true);
+    expect(chatTabButton.classList.contains('active')).toBe(true);
+    expect(todosTabButton.classList.contains('active')).toBe(false);
+  });
+
+  it('should detect mobile viewport', () => {
+    // Mock window.matchMedia
+    window.matchMedia = vi.fn().mockImplementation(query => ({
+      matches: query === '(max-width: 767px)',
+      media: query,
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+    }));
+
+    expect(tabManager.isMobile()).toBe(true);
+  });
+
+  it('should detect desktop viewport', () => {
+    // Mock window.matchMedia for desktop
+    window.matchMedia = vi.fn().mockImplementation(query => ({
+      matches: false,
+      media: query,
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+    }));
+
+    expect(tabManager.isMobile()).toBe(false);
+  });
+
+  it('should handle tab button clicks', () => {
+    tabManager.init();
+
+    // Click todos tab
+    todosTabButton.click();
+
+    expect(tabManager.activeTab).toBe('todos');
+
+    // Click chat tab
+    chatTabButton.click();
+
+    expect(tabManager.activeTab).toBe('chat');
   });
 });

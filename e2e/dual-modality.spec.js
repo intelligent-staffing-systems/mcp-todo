@@ -17,9 +17,9 @@ test.describe('Dual-Modality Interface', () => {
   });
 
   test('should display split-screen layout', async ({ page }) => {
-    // Check that both panels exist
-    const chatPanel = page.locator('.w-1\\/2').first();
-    const todoPanel = page.locator('.w-1\\/2').last();
+    // Check that both panels exist by ID
+    const chatPanel = page.locator('#chat-panel');
+    const todoPanel = page.locator('#todos-panel');
 
     await expect(chatPanel).toBeVisible();
     await expect(todoPanel).toBeVisible();

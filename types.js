@@ -57,4 +57,21 @@
  * @property {string} [details] - Additional error details
  */
 
+/**
+ * @typedef {'chat'|'todos'} TabName
+ * Tab identifier for mobile view
+ */
+
+/**
+ * @typedef {Object} MobileTabManager
+ * @property {TabName} activeTab - Currently active tab ('chat' or 'todos')
+ * @property {HTMLElement} chatPanel - Chat panel DOM element
+ * @property {HTMLElement} todosPanel - Todos panel DOM element
+ * @property {HTMLElement} chatTabButton - Chat tab button DOM element
+ * @property {HTMLElement} todosTabButton - Todos tab button DOM element
+ * @property {function(): void} init - Initialize tab manager and set up event listeners
+ * @property {function(TabName): void} switchTab - Switch to specified tab
+ * @property {function(): boolean} isMobile - Check if viewport is mobile size (< 768px)
+ */
+
 export {};
