@@ -89,3 +89,33 @@ export const SetTagsInputSchema = z.object({
   id: z.string().uuid('Valid todo ID required'),
   tags: z.array(z.string()),
 });
+
+// REST API request/response schemas
+export const CreateTodoRequestSchema = z.object({
+  text: z.string().min(1, 'Todo text is required'),
+  starred: z.boolean().optional(),
+  priority: z.number().int().min(1).max(5).optional(),
+  tags: z.array(z.string()).optional(),
+  dueDate: z.string().datetime().optional(), // ISO string from REST API
+});
+
+export const UpdateTodoRequestSchema = z.object({
+  text: z.string().min(1).optional(),
+  completed: z.boolean().optional(),
+  starred: z.boolean().optional(),
+  priority: z.number().int().min(1).max(5).optional(),
+  tags: z.array(z.string()).optional(),
+  dueDate: z.string().datetime().optional(), // ISO string from REST API
+});
+
+export const TodoFiltersRequestSchema = z.object({
+  starred: z.enum(['true', 'false']).optional(),
+  completed: z.enum(['true', 'false']).optional(),
+  priority: z.string().regex(/^[1-5]$/).optional(),
+  tags: z.union([z.string(), z.array(z.string())]).optional(),
+});
+
+export const ErrorResponseSchema = z.object({
+  error: z.string(),
+  details: z.string().optional(),
+});

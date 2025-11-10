@@ -19,43 +19,80 @@
     .message {
       animation: slideIn 0.3s ease-out;
     }
+    .todo-item {
+      animation: slideIn 0.3s ease-out;
+    }
   </style>
 </head>
 <body class="bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 min-h-screen flex items-center justify-center p-4">
-  <div class="bg-white rounded-xl shadow-2xl w-full max-w-4xl flex flex-col max-h-[90vh]">
-    <!-- Header -->
-    <header class="px-6 py-5 border-b border-gray-200">
-      <h1 class="text-2xl font-bold text-gray-800">Todo Assistant</h1>
-      <p class="text-sm text-gray-500 mt-1">Powered by Claude & MCP</p>
-    </header>
+  <div class="bg-white rounded-xl shadow-2xl w-full max-w-7xl flex max-h-[90vh]">
+    <!-- Left: Chat Interface -->
+    <div class="w-1/2 flex flex-col border-r border-gray-200">
+      <!-- Header -->
+      <header class="px-6 py-5 border-b border-gray-200">
+        <h1 class="text-2xl font-bold text-gray-800">Chat Assistant</h1>
+        <p class="text-sm text-gray-500 mt-1">Powered by Claude & MCP</p>
+      </header>
 
-    <!-- Messages Container -->
-    <div id="messages" class="flex-1 overflow-y-auto p-6 space-y-4">
-      <!-- Messages will be dynamically added here -->
+      <!-- Messages Container -->
+      <div id="messages" class="flex-1 overflow-y-auto p-6 space-y-4">
+        <!-- Messages will be dynamically added here -->
+      </div>
+
+      <!-- Status Bar -->
+      <div id="status" class="px-6 py-2 text-sm border-t border-gray-200 min-h-[40px] flex items-center justify-center">
+        <!-- Status messages appear here -->
+      </div>
+
+      <!-- Input Form -->
+      <form id="chat-form" class="px-6 py-4 border-t border-gray-200 flex gap-3">
+        <input
+          type="text"
+          id="message-input"
+          placeholder="Ask me about your todos..."
+          autocomplete="off"
+          required
+          class="flex-1 px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-indigo-500 transition-colors"
+        >
+        <button
+          type="submit"
+          class="px-6 py-3 bg-indigo-600 text-white font-semibold rounded-lg hover:bg-indigo-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
+        >
+          Send
+        </button>
+      </form>
     </div>
 
-    <!-- Status Bar -->
-    <div id="status" class="px-6 py-2 text-sm border-t border-gray-200 min-h-[40px] flex items-center justify-center">
-      <!-- Status messages appear here -->
-    </div>
+    <!-- Right: Todo List UI -->
+    <div class="w-1/2 flex flex-col">
+      <!-- Header -->
+      <header class="px-6 py-5 border-b border-gray-200">
+        <h1 class="text-2xl font-bold text-gray-800">Your Todos</h1>
+        <p class="text-sm text-gray-500 mt-1">Manage your tasks</p>
+      </header>
 
-    <!-- Input Form -->
-    <form id="chat-form" class="px-6 py-4 border-t border-gray-200 flex gap-3">
-      <input
-        type="text"
-        id="message-input"
-        placeholder="Ask me about your todos..."
-        autocomplete="off"
-        required
-        class="flex-1 px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-indigo-500 transition-colors"
-      >
-      <button
-        type="submit"
-        class="px-6 py-3 bg-indigo-600 text-white font-semibold rounded-lg hover:bg-indigo-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
-      >
-        Send
-      </button>
-    </form>
+      <!-- Todos Container -->
+      <div id="todos-container" class="flex-1 overflow-y-auto p-6 space-y-3">
+        <!-- Todos will be dynamically added here -->
+      </div>
+
+      <!-- Quick Add Form -->
+      <form id="quick-add-form" class="px-6 py-4 border-t border-gray-200 flex gap-3">
+        <input
+          type="text"
+          id="quick-add-input"
+          placeholder="Quick add todo..."
+          autocomplete="off"
+          class="flex-1 px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-indigo-500 transition-colors"
+        >
+        <button
+          type="submit"
+          class="px-6 py-3 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700 transition-colors"
+        >
+          Add
+        </button>
+      </form>
+    </div>
   </div>
 
   <script type="module" src="app.js"></script>

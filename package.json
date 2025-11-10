@@ -41,6 +41,7 @@
     "husky": "^9.1.7",
     "jsdom": "^27.1.0",
     "npm-check-updates": "^19.1.2",
+    "supertest": "^7.1.4",
     "vitest": "^4.0.8"
   }
 }

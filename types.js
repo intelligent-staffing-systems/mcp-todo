@@ -22,4 +22,37 @@
  * @property {function(string, string[]): Todo} setTags - Set tags for a todo
  */
 
+/**
+ * @typedef {Object} CreateTodoRequest
+ * @property {string} text - The todo item text
+ * @property {boolean} [starred] - Whether the todo is starred
+ * @property {number} [priority] - Priority tier (1-5)
+ * @property {string[]} [tags] - Tags for organization
+ * @property {string} [dueDate] - Due date in ISO format
+ */
+
+/**
+ * @typedef {Object} UpdateTodoRequest
+ * @property {string} [text] - Updated todo text
+ * @property {boolean} [completed] - Completion status
+ * @property {boolean} [starred] - Starred status
+ * @property {number} [priority] - Priority tier (1-5)
+ * @property {string[]} [tags] - Tags
+ * @property {string} [dueDate] - Due date in ISO format
+ */
+
+/**
+ * @typedef {Object} TodoFilters
+ * @property {boolean} [starred] - Filter by starred status
+ * @property {boolean} [completed] - Filter by completion status
+ * @property {number} [priority] - Filter by priority tier
+ * @property {string[]} [tags] - Filter by tags
+ */
+
+/**
+ * @typedef {Object} ErrorResponse
+ * @property {string} error - Error message
+ * @property {string} [details] - Additional error details
+ */
+
 export {};
