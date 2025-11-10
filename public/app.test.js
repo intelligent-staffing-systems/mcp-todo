@@ -137,6 +137,108 @@ describe('ApiClient', () => {
     expect(health).toEqual(mockHealth);
     expect(health.mcpConnected).toBe(true);
   });
+
+  it('should get all todos', async () => {
+    const client = new ApiClient();
+    const mockTodos = [
+      { id: '1', text: 'Test todo 1', completed: false },
+      { id: '2', text: 'Test todo 2', completed: true },
+    ];
+
+    global.fetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => mockTodos,
+    });
+
+    const todos = await client.getTodos();
+
+    expect(global.fetch).toHaveBeenCalledWith('/api/todos');
+    expect(todos).toEqual(mockTodos);
+    expect(todos).toHaveLength(2);
+  });
+
+  it('should get todos with filters', async () => {
+    const client = new ApiClient();
+    const mockTodos = [{ id: '1', text: 'Starred todo', starred: true }];
+
+    global.fetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => mockTodos,
+    });
+
+    const todos = await client.getTodos({ starred: true });
+
+    expect(global.fetch).toHaveBeenCalledWith('/api/todos?starred=true');
+    expect(todos).toEqual(mockTodos);
+  });
+
+  it('should create a new todo', async () => {
+    const client = new ApiClient();
+    const newTodo = { text: 'New todo', starred: true };
+    const mockResponse = { id: '123', ...newTodo, completed: false };
+
+    global.fetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => mockResponse,
+    });
+
+    const result = await client.createTodo(newTodo);
+
+    expect(global.fetch).toHaveBeenCalledWith('/api/todos', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(newTodo),
+    });
+    expect(result).toEqual(mockResponse);
+    expect(result.id).toBe('123');
+  });
+
+  it('should update a todo', async () => {
+    const client = new ApiClient();
+    const updates = { text: 'Updated text', completed: true };
+    const mockResponse = { id: '123', ...updates };
+
+    global.fetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => mockResponse,
+    });
+
+    const result = await client.updateTodo('123', updates);
+
+    expect(global.fetch).toHaveBeenCalledWith('/api/todos/123', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(updates),
+    });
+    expect(result).toEqual(mockResponse);
+  });
+
+  it('should delete a todo', async () => {
+    const client = new ApiClient();
+
+    global.fetch.mockResolvedValueOnce({
+      ok: true,
+      status: 204,
+    });
+
+    await client.deleteTodo('123');
+
+    expect(global.fetch).toHaveBeenCalledWith('/api/todos/123', {
+      method: 'DELETE',
+    });
+  });
+
+  it('should handle error when creating todo', async () => {
+    const client = new ApiClient();
+
+    global.fetch.mockResolvedValueOnce({
+      ok: false,
+      status: 400,
+      statusText: 'Bad Request',
+    });
+
+    await expect(client.createTodo({ text: '' })).rejects.toThrow();
+  });
 });
 
 describe('UIManager', () => {

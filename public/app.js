@@ -136,6 +136,85 @@ export class ApiClient {
     // Validate response with Zod if available (tests), otherwise just return
     return HealthResponseSchema ? HealthResponseSchema.parse(data) : data;
   }
+
+  /**
+   * Get all todos
+   * @param {Object} filters
+   * @returns {Promise<Todo[]>}
+   */
+  async getTodos(filters = {}) {
+    const params = new URLSearchParams();
+    Object.entries(filters).forEach(([key, value]) => {
+      if (value !== undefined) params.append(key, value);
+    });
+
+    const url = `${this.baseUrl}/api/todos${params.toString() ? '?' + params.toString() : ''}`;
+    const response = await fetch(url);
+
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    }
+
+    return await response.json();
+  }
+
+  /**
+   * Create a new todo
+   * @param {Object} todoData
+   * @returns {Promise<Todo>}
+   */
+  async createTodo(todoData) {
+    const response = await fetch(`${this.baseUrl}/api/todos`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(todoData),
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    }
+
+    return await response.json();
+  }
+
+  /**
+   * Update a todo
+   * @param {string} id
+   * @param {Object} updates
+   * @returns {Promise<Todo>}
+   */
+  async updateTodo(id, updates) {
+    const response = await fetch(`${this.baseUrl}/api/todos/${id}`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(updates),
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    }
+
+    return await response.json();
+  }
+
+  /**
+   * Delete a todo
+   * @param {string} id
+   * @returns {Promise<void>}
+   */
+  async deleteTodo(id) {
+    const response = await fetch(`${this.baseUrl}/api/todos/${id}`, {
+      method: 'DELETE',
+    });
+
+    if (!response.ok && response.status !== 204) {
+      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    }
+  }
 }
 
 /**
