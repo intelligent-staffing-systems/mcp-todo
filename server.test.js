@@ -139,8 +139,9 @@ describe('REST API Endpoints', () => {
     });
 
     it('should return all todos', async () => {
-      // Create test data
+      // Create test data with slight delay to ensure different timestamps
       todoService.createTodo('Test todo 1');
+      await new Promise(resolve => setTimeout(resolve, 10));
       todoService.createTodo('Test todo 2');
 
       const response = await request(app)
