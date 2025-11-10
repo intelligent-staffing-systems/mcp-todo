@@ -5,9 +5,20 @@ import { z } from 'zod';
  * These match the JSDoc types in types.js but provide runtime enforcement
  */
 
+// Project schema
+export const ProjectSchema = z.object({
+  id: z.string().uuid(),
+  name: z.string().min(1, 'Project name cannot be empty'),
+  description: z.string().nullable(),
+  createdAt: z.date(),
+  updatedAt: z.date(),
+});
+
 // Todo schema
 export const TodoSchema = z.object({
   id: z.string().uuid(),
+  projectId: z.string().uuid().nullable(),
+  title: z.string().nullable(),
   text: z.string().min(1, 'Todo text cannot be empty'),
   completed: z.boolean(),
   starred: z.boolean(),
@@ -21,6 +32,8 @@ export const TodoSchema = z.object({
 // Partial Todo for updates (all fields optional except id)
 export const TodoUpdateSchema = z.object({
   id: z.string().uuid(),
+  projectId: z.string().uuid().nullable().optional(),
+  title: z.string().nullable().optional(),
   text: z.string().min(1).optional(),
   completed: z.boolean().optional(),
   starred: z.boolean().optional(),
@@ -31,6 +44,8 @@ export const TodoUpdateSchema = z.object({
 
 // Todo creation metadata
 export const TodoCreateMetadataSchema = z.object({
+  projectId: z.string().uuid().optional(),
+  title: z.string().optional(),
   starred: z.boolean().optional(),
   priority: z.number().int().min(1).max(5).optional(),
   tags: z.array(z.string()).optional(),
@@ -39,6 +54,7 @@ export const TodoCreateMetadataSchema = z.object({
 
 // Filters for getTodos
 export const TodoFiltersSchema = z.object({
+  projectId: z.string().uuid().optional(),
   starred: z.boolean().optional(),
   priority: z.number().int().min(1).max(5).optional(),
   tags: z.array(z.string()).optional(),
@@ -47,6 +63,8 @@ export const TodoFiltersSchema = z.object({
 
 // MCP tool input schemas
 export const CreateTodoInputSchema = z.object({
+  projectId: z.string().uuid().optional(),
+  title: z.string().optional(),
   text: z.string().min(1, 'Todo text is required'),
   starred: z.boolean().optional(),
   priority: z.number().int().min(1).max(5).optional(),
@@ -55,6 +73,7 @@ export const CreateTodoInputSchema = z.object({
 });
 
 export const ListTodosInputSchema = z.object({
+  projectId: z.string().uuid().optional(),
   starred: z.boolean().optional(),
   priority: z.number().int().min(1).max(5).optional(),
   tags: z.array(z.string()).optional(),
@@ -63,6 +82,8 @@ export const ListTodosInputSchema = z.object({
 
 export const UpdateTodoInputSchema = z.object({
   id: z.string().uuid('Valid todo ID required'),
+  projectId: z.string().uuid().nullable().optional(),
+  title: z.string().nullable().optional(),
   text: z.string().min(1).optional(),
   completed: z.boolean().optional(),
   starred: z.boolean().optional(),
@@ -88,6 +109,28 @@ export const SetPriorityInputSchema = z.object({
 export const SetTagsInputSchema = z.object({
   id: z.string().uuid('Valid todo ID required'),
   tags: z.array(z.string()),
+});
+
+// Project MCP tool input schemas
+export const CreateProjectInputSchema = z.object({
+  name: z.string().min(1, 'Project name is required'),
+  description: z.string().optional(),
+});
+
+export const ListProjectsInputSchema = z.object({});
+
+export const UpdateProjectInputSchema = z.object({
+  id: z.string().uuid('Valid project ID required'),
+  name: z.string().min(1).optional(),
+  description: z.string().nullable().optional(),
+});
+
+export const DeleteProjectInputSchema = z.object({
+  id: z.string().uuid('Valid project ID required'),
+});
+
+export const GetProjectInputSchema = z.object({
+  id: z.string().uuid('Valid project ID required'),
 });
 
 // REST API request/response schemas
