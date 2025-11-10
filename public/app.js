@@ -300,6 +300,190 @@ export class UIManager {
 }
 
 /**
+ * Manages todo list UI and interactions
+ * @implements {TodoListManager}
+ */
+export class TodoListManager {
+  constructor(apiClient) {
+    this.apiClient = apiClient;
+    this.todosContainer = document.getElementById('todos-container');
+    this.quickAddForm = document.getElementById('quick-add-form');
+    this.quickAddInput = document.getElementById('quick-add-input');
+    this.pollingInterval = null;
+    this.currentTodos = [];
+
+    this.setupEventListeners();
+  }
+
+  /**
+   * Setup event listeners for quick add form
+   */
+  setupEventListeners() {
+    if (this.quickAddForm) {
+      this.quickAddForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const text = this.quickAddInput.value.trim();
+        if (text) {
+          await this.quickAddTodo(text);
+          this.quickAddInput.value = '';
+        }
+      });
+    }
+  }
+
+  /**
+   * Render todos to the DOM
+   * @param {Todo[]} todos
+   */
+  render(todos) {
+    if (!this.todosContainer) return;
+
+    this.currentTodos = todos;
+    this.todosContainer.innerHTML = '';
+
+    if (todos.length === 0) {
+      const emptyState = document.createElement('div');
+      emptyState.className = 'text-center text-gray-400 py-8';
+      emptyState.textContent = 'No todos yet. Add one to get started!';
+      this.todosContainer.appendChild(emptyState);
+      return;
+    }
+
+    todos.forEach(todo => {
+      const todoElement = this.createTodoElement(todo);
+      this.todosContainer.appendChild(todoElement);
+    });
+  }
+
+  /**
+   * Create a todo DOM element
+   * @param {Todo} todo
+   * @returns {HTMLElement}
+   */
+  createTodoElement(todo) {
+    const div = document.createElement('div');
+    div.className = 'todo-item flex items-center gap-3 p-3 bg-white border border-gray-200 rounded-lg hover:shadow-sm transition-shadow';
+    div.dataset.id = todo.id;
+
+    // Checkbox
+    const checkbox = document.createElement('input');
+    checkbox.type = 'checkbox';
+    checkbox.checked = todo.completed;
+    checkbox.className = 'w-5 h-5 text-green-600 rounded focus:ring-2 focus:ring-green-500';
+    checkbox.addEventListener('change', () => this.toggleComplete(todo.id, todo.completed));
+
+    // Text
+    const text = document.createElement('span');
+    text.className = `flex-1 ${todo.completed ? 'line-through text-gray-400' : 'text-gray-800'}`;
+    text.textContent = todo.text;
+
+    // Priority badge
+    if (todo.priority && todo.priority <= 2) {
+      const priority = document.createElement('span');
+      priority.className = 'px-2 py-1 text-xs font-semibold rounded bg-red-100 text-red-800';
+      priority.textContent = `P${todo.priority}`;
+      div.appendChild(priority);
+    }
+
+    // Star button
+    if (todo.starred) {
+      const star = document.createElement('span');
+      star.className = 'text-yellow-400';
+      star.textContent = '⭐';
+      div.appendChild(star);
+    }
+
+    // Delete button
+    const deleteBtn = document.createElement('button');
+    deleteBtn.className = 'text-red-500 hover:text-red-700 font-bold';
+    deleteBtn.textContent = '×';
+    deleteBtn.addEventListener('click', () => this.deleteTodo(todo.id));
+
+    div.appendChild(checkbox);
+    div.appendChild(text);
+    div.appendChild(deleteBtn);
+
+    return div;
+  }
+
+  /**
+   * Toggle todo completion status
+   * @param {string} id
+   * @param {boolean} currentStatus
+   */
+  async toggleComplete(id, currentStatus) {
+    try {
+      await this.apiClient.updateTodo(id, { completed: !currentStatus });
+      await this.refresh();
+    } catch (error) {
+      console.error('Toggle complete error:', error);
+    }
+  }
+
+  /**
+   * Delete a todo
+   * @param {string} id
+   */
+  async deleteTodo(id) {
+    try {
+      await this.apiClient.deleteTodo(id);
+      await this.refresh();
+    } catch (error) {
+      console.error('Delete todo error:', error);
+    }
+  }
+
+  /**
+   * Quick add a new todo
+   * @param {string} text
+   */
+  async quickAddTodo(text) {
+    try {
+      await this.apiClient.createTodo({ text });
+      await this.refresh();
+    } catch (error) {
+      console.error('Quick add error:', error);
+    }
+  }
+
+  /**
+   * Refresh todos from server
+   */
+  async refresh() {
+    try {
+      const todos = await this.apiClient.getTodos();
+      this.render(todos);
+    } catch (error) {
+      console.error('Refresh error:', error);
+    }
+  }
+
+  /**
+   * Start polling for updates
+   * @param {number} interval - Polling interval in milliseconds
+   */
+  startPolling(interval = 2000) {
+    // Initial load
+    this.refresh();
+
+    // Poll for updates
+    this.pollingInterval = setInterval(() => {
+      this.refresh();
+    }, interval);
+  }
+
+  /**
+   * Stop polling
+   */
+  stopPolling() {
+    if (this.pollingInterval) {
+      clearInterval(this.pollingInterval);
+      this.pollingInterval = null;
+    }
+  }
+}
+
+/**
  * Main application initialization
  */
 (async function initApp() {
@@ -314,6 +498,7 @@ export class UIManager {
   const conversationManager = new ConversationManager();
   const apiClient = new ApiClient();
   const uiManager = new UIManager();
+  const todoListManager = new TodoListManager(apiClient);
 
   let conversationHistory = [];
 
@@ -392,6 +577,9 @@ export class UIManager {
   loadHistory();
   checkHealth();
   messageInput.focus();
+
+  // Start todo list polling (2 second interval)
+  todoListManager.startPolling(2000);
 })();
 
 // Load schemas for tests

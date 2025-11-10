@@ -302,3 +302,112 @@ describe('UIManager', () => {
     expect(document.querySelector('button[type="submit"]').disabled).toBe(false);
   });
 });
+
+describe('TodoListManager', () => {
+  let apiClient, todoListManager;
+
+  beforeEach(() => {
+    // Setup todos container in DOM
+    document.body.innerHTML = `
+      <div id="todos-container"></div>
+      <form id="quick-add-form">
+        <input id="quick-add-input">
+      </form>
+    `;
+    apiClient = new ApiClient();
+    global.fetch = vi.fn();
+  });
+
+  it('should render todos to DOM', async () => {
+    const { TodoListManager } = await import('./app.js');
+    todoListManager = new TodoListManager(apiClient);
+
+    const mockTodos = [
+      { id: '1', text: 'Test todo 1', completed: false, starred: false, priority: 3, tags: [] },
+      { id: '2', text: 'Test todo 2', completed: true, starred: true, priority: 1, tags: ['work'] },
+    ];
+
+    todoListManager.render(mockTodos);
+
+    const container = document.getElementById('todos-container');
+    expect(container.children).toHaveLength(2);
+  });
+
+  it('should handle todo checkbox toggle', async () => {
+    const { TodoListManager } = await import('./app.js');
+    todoListManager = new TodoListManager(apiClient);
+
+    const mockTodo = { id: '1', text: 'Test todo', completed: false, starred: false, priority: 3, tags: [] };
+
+    global.fetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({ ...mockTodo, completed: true }),
+    });
+
+    await todoListManager.toggleComplete('1', false);
+
+    expect(global.fetch).toHaveBeenCalledWith('/api/todos/1', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ completed: true }),
+    });
+  });
+
+  it('should handle todo deletion', async () => {
+    const { TodoListManager } = await import('./app.js');
+    todoListManager = new TodoListManager(apiClient);
+
+    global.fetch.mockResolvedValueOnce({
+      ok: true,
+      status: 204,
+    });
+
+    await todoListManager.deleteTodo('1');
+
+    expect(global.fetch).toHaveBeenCalledWith('/api/todos/1', {
+      method: 'DELETE',
+    });
+  });
+
+  it('should handle quick add form submission', async () => {
+    const { TodoListManager } = await import('./app.js');
+    todoListManager = new TodoListManager(apiClient);
+
+    const mockNewTodo = { id: '123', text: 'New quick todo', completed: false };
+
+    global.fetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => mockNewTodo,
+    });
+
+    await todoListManager.quickAddTodo('New quick todo');
+
+    expect(global.fetch).toHaveBeenCalledWith('/api/todos', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ text: 'New quick todo' }),
+    });
+  });
+
+  it('should start and stop polling', async () => {
+    const { TodoListManager } = await import('./app.js');
+    todoListManager = new TodoListManager(apiClient);
+
+    vi.useFakeTimers();
+
+    global.fetch.mockResolvedValue({
+      ok: true,
+      json: async () => [],
+    });
+
+    todoListManager.startPolling(1000);
+
+    expect(todoListManager.pollingInterval).toBeDefined();
+
+    todoListManager.stopPolling();
+
+    expect(todoListManager.pollingInterval).toBeNull();
+
+    vi.useRealTimers();
+  });
+});
