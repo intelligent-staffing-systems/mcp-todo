@@ -4,8 +4,8 @@ test.describe('Todo Chat Application', () => {
   test('should load the application', async ({ page }) => {
     await page.goto('/');
 
-    // Check header is visible
-    await expect(page.getByRole('heading', { name: 'Todo Assistant' })).toBeVisible();
+    // Check header is visible (updated for dual-modality interface)
+    await expect(page.getByRole('heading', { name: 'Chat Assistant' })).toBeVisible();
     await expect(page.getByText('Powered by Claude & MCP')).toBeVisible();
 
     // Check input form is present
