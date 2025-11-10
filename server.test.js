@@ -10,7 +10,7 @@ import fs from 'fs';
  */
 
 // Import schemas for validation
-import { CreateTodoRequestSchema, UpdateTodoRequestSchema } from './schemas.js';
+import { CreateTodoRequestSchema, UpdateTodoRequestSchema, ReorderTodosRequestSchema } from './schemas.js';
 
 // Create test server with actual implementation
 function createTestServer() {
@@ -59,6 +59,26 @@ function createTestServer() {
         res.status(400).json({ error: error.message });
       } else {
         res.status(500).json({ error: 'Failed to create todo', details: error.message });
+      }
+    }
+  });
+
+  // IMPORTANT: This route must come BEFORE /api/todos/:id routes
+  // Otherwise Express will match "reorder" as an ID parameter
+  app.post('/api/todos/reorder', (req, res) => {
+    try {
+      // Validate request body
+      const validatedData = ReorderTodosRequestSchema.parse(req.body);
+
+      todoService.reorderTodos(validatedData.orderedIds);
+
+      res.status(200).json({ success: true, message: 'Todos reordered successfully' });
+    } catch (error) {
+      console.error('Reorder todos error:', error);
+      if (error.name === 'ZodError') {
+        res.status(400).json({ error: 'Validation failed', details: error.message });
+      } else {
+        res.status(500).json({ error: 'Failed to reorder todos', details: error.message });
       }
     }
   });
@@ -149,10 +169,10 @@ describe('REST API Endpoints', () => {
         .expect(200);
 
       expect(response.body).toHaveLength(2);
-      // Todos are sorted by priority (default 3) then by createdAt DESC
-      // So newer todos appear first
-      expect(response.body[0].text).toBe('Test todo 2');
-      expect(response.body[1].text).toBe('Test todo 1');
+      // Todos are sorted by displayOrder ASC, priority ASC, then by createdAt DESC
+      // displayOrder is assigned sequentially when created, so older todos have lower displayOrder
+      expect(response.body[0].text).toBe('Test todo 1');
+      expect(response.body[1].text).toBe('Test todo 2');
     });
 
     it('should filter todos by starred status', async () => {
@@ -310,6 +330,84 @@ describe('REST API Endpoints', () => {
         .expect(404);
 
       expect(response.body.error).toBeDefined();
+    });
+  });
+
+  describe('POST /api/todos/reorder', () => {
+    it('should reorder todos successfully', async () => {
+      const todo1 = todoService.createTodo('First');
+      const todo2 = todoService.createTodo('Second');
+      const todo3 = todoService.createTodo('Third');
+
+      // Reorder: Third, First, Second
+      const response = await request(app)
+        .post('/api/todos/reorder')
+        .send({ orderedIds: [todo3.id, todo1.id, todo2.id] })
+        .expect(200);
+
+      expect(response.body.success).toBe(true);
+      expect(response.body.message).toBe('Todos reordered successfully');
+
+      // Verify the new order
+      const todos = todoService.getTodos();
+      expect(todos[0].text).toBe('Third');
+      expect(todos[1].text).toBe('First');
+      expect(todos[2].text).toBe('Second');
+    });
+
+    it('should return 400 if orderedIds is missing', async () => {
+      const response = await request(app)
+        .post('/api/todos/reorder')
+        .send({})
+        .expect(400);
+
+      expect(response.body.error).toBe('Validation failed');
+    });
+
+    it('should return 400 if orderedIds is not an array', async () => {
+      const response = await request(app)
+        .post('/api/todos/reorder')
+        .send({ orderedIds: 'not-an-array' })
+        .expect(400);
+
+      expect(response.body.error).toBe('Validation failed');
+    });
+
+    it('should return 400 if orderedIds contains invalid UUIDs', async () => {
+      const response = await request(app)
+        .post('/api/todos/reorder')
+        .send({ orderedIds: ['invalid-uuid', 'also-invalid'] })
+        .expect(400);
+
+      expect(response.body.error).toBe('Validation failed');
+    });
+
+    it('should handle empty orderedIds array', async () => {
+      todoService.createTodo('Test');
+
+      const response = await request(app)
+        .post('/api/todos/reorder')
+        .send({ orderedIds: [] })
+        .expect(200);
+
+      expect(response.body.success).toBe(true);
+    });
+
+    it('should handle partial reordering', async () => {
+      const todo1 = todoService.createTodo('A');
+      const todo2 = todoService.createTodo('B');
+      const todo3 = todoService.createTodo('C');
+
+      // Reorder only first two
+      await request(app)
+        .post('/api/todos/reorder')
+        .send({ orderedIds: [todo2.id, todo1.id] })
+        .expect(200);
+
+      const todos = todoService.getTodos();
+      expect(todos[0].text).toBe('B');
+      expect(todos[1].text).toBe('A');
+      expect(todos[2].text).toBe('C');
     });
   });
 
