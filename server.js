@@ -338,6 +338,7 @@ app.delete('/api/todos/:id', (req, res) => {
 app.get('/health', (req, res) => {
   res.json({
     status: 'ok',
+    mcpConnected: true, // MCP tools are in-process
     toolsAvailable: mcpTools.length,
   });
 });
