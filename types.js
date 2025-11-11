@@ -2,6 +2,7 @@
  * @typedef {Object} Todo
  * @property {string} id - Unique identifier for the todo
  * @property {string} text - The todo item text
+ * @property {string|null} description - Optional detailed description
  * @property {boolean} completed - Whether the todo is completed
  * @property {boolean} starred - Whether the todo is starred/favorited
  * @property {number} priority - Priority tier (1=highest, 5=lowest)
@@ -26,6 +27,7 @@
 /**
  * @typedef {Object} CreateTodoRequest
  * @property {string} text - The todo item text
+ * @property {string} [description] - Detailed description
  * @property {boolean} [starred] - Whether the todo is starred
  * @property {number} [priority] - Priority tier (1-5)
  * @property {string[]} [tags] - Tags for organization
@@ -35,6 +37,7 @@
 /**
  * @typedef {Object} UpdateTodoRequest
  * @property {string} [text] - Updated todo text
+ * @property {string} [description] - Updated description
  * @property {boolean} [completed] - Completion status
  * @property {boolean} [starred] - Starred status
  * @property {number} [priority] - Priority tier (1-5)

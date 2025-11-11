@@ -9,6 +9,7 @@ import { z } from 'zod';
 export const TodoSchema = z.object({
   id: z.string().uuid(),
   text: z.string().min(1, 'Todo text cannot be empty'),
+  description: z.string().nullable(),
   completed: z.boolean(),
   starred: z.boolean(),
   priority: z.number().int().min(1).max(5),
@@ -23,6 +24,7 @@ export const TodoSchema = z.object({
 export const TodoUpdateSchema = z.object({
   id: z.string().uuid(),
   text: z.string().min(1).optional(),
+  description: z.string().nullable().optional(),
   completed: z.boolean().optional(),
   starred: z.boolean().optional(),
   priority: z.number().int().min(1).max(5).optional(),
@@ -33,6 +35,7 @@ export const TodoUpdateSchema = z.object({
 
 // Todo creation metadata
 export const TodoCreateMetadataSchema = z.object({
+  description: z.string().optional(),
   starred: z.boolean().optional(),
   priority: z.number().int().min(1).max(5).optional(),
   tags: z.array(z.string()).optional(),
@@ -50,6 +53,7 @@ export const TodoFiltersSchema = z.object({
 // MCP tool input schemas
 export const CreateTodoInputSchema = z.object({
   text: z.string().min(1, 'Todo text is required'),
+  description: z.string().optional(),
   starred: z.boolean().optional(),
   priority: z.number().int().min(1).max(5).optional(),
   tags: z.array(z.string()).optional(),
@@ -66,6 +70,7 @@ export const ListTodosInputSchema = z.object({
 export const UpdateTodoInputSchema = z.object({
   id: z.string().uuid('Valid todo ID required'),
   text: z.string().min(1).optional(),
+  description: z.string().optional(),
   completed: z.boolean().optional(),
   starred: z.boolean().optional(),
   priority: z.number().int().min(1).max(5).optional(),
@@ -95,6 +100,7 @@ export const SetTagsInputSchema = z.object({
 // REST API request/response schemas
 export const CreateTodoRequestSchema = z.object({
   text: z.string().min(1, 'Todo text is required'),
+  description: z.string().optional(),
   starred: z.boolean().optional(),
   priority: z.number().int().min(1).max(5).optional(),
   tags: z.array(z.string()).optional(),
@@ -103,6 +109,7 @@ export const CreateTodoRequestSchema = z.object({
 
 export const UpdateTodoRequestSchema = z.object({
   text: z.string().min(1).optional(),
+  description: z.string().optional(),
   completed: z.boolean().optional(),
   starred: z.boolean().optional(),
   priority: z.number().int().min(1).max(5).optional(),

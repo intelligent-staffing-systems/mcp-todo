@@ -2,6 +2,7 @@
 CREATE TABLE IF NOT EXISTS todos (
   id TEXT PRIMARY KEY,
   text TEXT NOT NULL,
+  description TEXT,
   completed INTEGER DEFAULT 0,
   starred INTEGER DEFAULT 0,
   priority INTEGER DEFAULT 3,

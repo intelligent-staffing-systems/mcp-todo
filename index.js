@@ -46,6 +46,10 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
               type: 'string',
               description: 'The todo item text',
             },
+            description: {
+              type: 'string',
+              description: 'Optional detailed description of the todo',
+            },
             starred: {
               type: 'boolean',
               description: 'Whether to star this todo',
@@ -110,6 +114,10 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
             text: {
               type: 'string',
               description: 'Updated text',
+            },
+            description: {
+              type: 'string',
+              description: 'Updated description',
             },
             completed: {
               type: 'boolean',
@@ -203,6 +211,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
       case 'create_todo': {
         const input = CreateTodoInputSchema.parse(args);
         const metadata = {
+          description: input.description,
           starred: input.starred,
           priority: input.priority,
           tags: input.tags,
@@ -222,6 +231,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
         const input = UpdateTodoInputSchema.parse(args);
         const updates = {
           text: input.text,
+          description: input.description,
           completed: input.completed,
           starred: input.starred,
           priority: input.priority,

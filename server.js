@@ -61,6 +61,7 @@ const mcpTools = [
       type: 'object',
       properties: {
         text: { type: 'string', description: 'The todo item text' },
+        description: { type: 'string', description: 'Optional detailed description' },
         starred: { type: 'boolean', description: 'Whether to star this todo' },
         priority: { type: 'number', description: 'Priority tier (1=highest, 5=lowest)', minimum: 1, maximum: 5 },
         tags: { type: 'array', items: { type: 'string' }, description: 'Tags for organization' },
@@ -90,6 +91,7 @@ const mcpTools = [
       properties: {
         id: { type: 'string', description: 'The todo ID' },
         text: { type: 'string', description: 'Updated text' },
+        description: { type: 'string', description: 'Updated description' },
         completed: { type: 'boolean', description: 'Completion status' },
         starred: { type: 'boolean', description: 'Starred status' },
         priority: { type: 'number', description: 'Priority tier', minimum: 1, maximum: 5 },
@@ -142,6 +144,7 @@ function executeMCPTool(name, args) {
     switch (name) {
       case 'create_todo': {
         const metadata = {
+          description: args.description,
           starred: args.starred,
           priority: args.priority,
           tags: args.tags,
@@ -157,6 +160,7 @@ function executeMCPTool(name, args) {
       case 'update_todo': {
         const updates = {
           text: args.text,
+          description: args.description,
           completed: args.completed,
           starred: args.starred,
           priority: args.priority,
@@ -345,6 +349,7 @@ app.post('/api/todos', (req, res) => {
     req.log.info({ text: validatedData.text, metadata: { starred: validatedData.starred, priority: validatedData.priority } }, 'Creating todo');
 
     const metadata = {
+      description: validatedData.description,
       starred: validatedData.starred,
       priority: validatedData.priority,
       tags: validatedData.tags,
@@ -376,6 +381,7 @@ app.patch('/api/todos/:id', (req, res) => {
 
     const updates = {
       text: validatedData.text,
+      description: validatedData.description,
       completed: validatedData.completed,
       starred: validatedData.starred,
       priority: validatedData.priority,

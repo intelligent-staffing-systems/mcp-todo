@@ -68,6 +68,7 @@ class TodoServiceImpl {
   /**
    * @param {string} text
    * @param {Object} metadata
+   * @param {string} [metadata.description]
    * @param {boolean} [metadata.starred]
    * @param {number} [metadata.priority]
    * @param {string[]} [metadata.tags]
@@ -89,11 +90,12 @@ class TodoServiceImpl {
     const displayOrder = (maxOrderResult.maxOrder || 0) + 1;
 
     this.db.prepare(`
-      INSERT INTO todos (id, text, completed, starred, priority, tags, dueDate, displayOrder, createdAt, updatedAt)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      INSERT INTO todos (id, text, description, completed, starred, priority, tags, dueDate, displayOrder, createdAt, updatedAt)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `).run(
       id,
       text.trim(),
+      validatedMetadata.description || null,
       0,
       validatedMetadata.starred ? 1 : 0,
       validatedMetadata.priority || 3,
@@ -126,6 +128,10 @@ class TodoServiceImpl {
     if (validatedUpdates.text !== undefined) {
       fields.push('text = ?');
       params.push(validatedUpdates.text.trim());
+    }
+    if (validatedUpdates.description !== undefined) {
+      fields.push('description = ?');
+      params.push(validatedUpdates.description);
     }
     if (validatedUpdates.completed !== undefined) {
       fields.push('completed = ?');
@@ -228,6 +234,7 @@ class TodoServiceImpl {
     return {
       id: row.id,
       text: row.text,
+      description: row.description || null,
       completed: Boolean(row.completed),
       starred: Boolean(row.starred),
       priority: row.priority,
