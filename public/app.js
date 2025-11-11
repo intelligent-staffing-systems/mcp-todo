@@ -657,6 +657,67 @@ export class TodoListManager {
 }
 
 /**
+ * Mobile Tab Manager
+ * Handles tab switching for mobile view (chat vs todos)
+ */
+export class MobileTabManager {
+  constructor() {
+    this.activeTab = 'chat';
+    this.chatPanel = document.getElementById('chat-panel');
+    this.todosPanel = document.getElementById('todos-panel');
+    this.chatTabButton = document.getElementById('chat-tab');
+    this.todosTabButton = document.getElementById('todos-tab');
+  }
+
+  /**
+   * Initialize tab manager and set up event listeners
+   */
+  init() {
+    if (!this.chatTabButton || !this.todosTabButton) {
+      return; // No mobile tabs (desktop mode)
+    }
+
+    // Set up click handlers
+    this.chatTabButton.addEventListener('click', () => this.switchTab('chat'));
+    this.todosTabButton.addEventListener('click', () => this.switchTab('todos'));
+  }
+
+  /**
+   * Switch to specified tab
+   * @param {import('../types.js').TabName} tabName - 'chat' or 'todos'
+   */
+  switchTab(tabName) {
+    this.activeTab = tabName;
+
+    if (tabName === 'chat') {
+      // Show chat, hide todos
+      this.chatPanel.classList.remove('hidden');
+      this.todosPanel.classList.add('hidden');
+
+      // Update button states
+      this.chatTabButton.classList.add('active');
+      this.todosTabButton.classList.remove('active');
+    } else {
+      // Show todos, hide chat
+      this.chatPanel.classList.add('hidden');
+      this.todosPanel.classList.remove('hidden');
+
+      // Update button states
+      this.chatTabButton.classList.remove('active');
+      this.todosTabButton.classList.add('active');
+    }
+  }
+
+  /**
+   * Check if viewport is mobile size
+   * @returns {boolean} True if mobile viewport (< 768px)
+   */
+  isMobile() {
+    return window.matchMedia('(max-width: 767px)').matches;
+  }
+}
+
+/**
  * Main application initialization
  */
 (async function initApp() {
@@ -779,6 +840,10 @@ export class TodoListManager {
       }
     });
   }
+
+  // Initialize mobile tab manager
+  const mobileTabManager = new MobileTabManager();
+  mobileTabManager.init();
 
   // Initialize
   loadHistory();
