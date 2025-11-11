@@ -72,6 +72,7 @@ class TodoServiceImpl {
    * @param {number} [metadata.priority]
    * @param {string[]} [metadata.tags]
    * @param {Date} [metadata.dueDate]
+   * @param {number} [metadata.points]
    * @returns {Todo}
    */
   createTodo(text, metadata = {}) {
@@ -89,8 +90,8 @@ class TodoServiceImpl {
     const displayOrder = (maxOrderResult.maxOrder || 0) + 1;
 
     this.db.prepare(`
-      INSERT INTO todos (id, text, completed, starred, priority, tags, dueDate, displayOrder, createdAt, updatedAt)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      INSERT INTO todos (id, text, completed, starred, priority, tags, dueDate, points, displayOrder, createdAt, updatedAt)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `).run(
       id,
       text.trim(),
@@ -99,6 +100,7 @@ class TodoServiceImpl {
       validatedMetadata.priority || 3,
       JSON.stringify(validatedMetadata.tags || []),
       validatedMetadata.dueDate ? validatedMetadata.dueDate.toISOString() : null,
+      validatedMetadata.points || null,
       displayOrder,
       now,
       now
@@ -146,6 +148,10 @@ class TodoServiceImpl {
     if (validatedUpdates.dueDate !== undefined) {
       fields.push('dueDate = ?');
       params.push(validatedUpdates.dueDate ? validatedUpdates.dueDate.toISOString() : null);
+    }
+    if (validatedUpdates.points !== undefined) {
+      fields.push('points = ?');
+      params.push(validatedUpdates.points);
     }
     if (validatedUpdates.displayOrder !== undefined) {
       fields.push('displayOrder = ?');
@@ -233,6 +239,7 @@ class TodoServiceImpl {
       priority: row.priority,
       tags: JSON.parse(row.tags),
       dueDate: row.dueDate ? new Date(row.dueDate) : null,
+      points: row.points || null,
       displayOrder: row.displayOrder || 0,
       createdAt: new Date(row.createdAt),
       updatedAt: new Date(row.updatedAt)

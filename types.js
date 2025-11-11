@@ -7,6 +7,7 @@
  * @property {number} priority - Priority tier (1=highest, 5=lowest)
  * @property {string[]} tags - Tags/categories for organization (e.g., ['work', 'pure-earth-labs'])
  * @property {Date|null} dueDate - Optional due date
+ * @property {number|null} points - Story points/difficulty value (1, 2, 3, 5, 8, 13 - Fibonacci scale)
  * @property {number} displayOrder - Order for displaying todos (lower numbers appear first)
  * @property {Date} createdAt - When the todo was created
  * @property {Date} updatedAt - When the todo was last updated
@@ -30,6 +31,7 @@
  * @property {number} [priority] - Priority tier (1-5)
  * @property {string[]} [tags] - Tags for organization
  * @property {string} [dueDate] - Due date in ISO format
+ * @property {number} [points] - Story points/difficulty (1, 2, 3, 5, 8, 13)
  */
 
 /**
@@ -40,6 +42,7 @@
  * @property {number} [priority] - Priority tier (1-5)
  * @property {string[]} [tags] - Tags
  * @property {string} [dueDate] - Due date in ISO format
+ * @property {number} [points] - Story points/difficulty (1, 2, 3, 5, 8, 13)
  * @property {number} [displayOrder] - Display order
  */
 

@@ -5,6 +5,9 @@ import { z } from 'zod';
  * These match the JSDoc types in types.js but provide runtime enforcement
  */
 
+// Valid Fibonacci story points
+const VALID_POINTS = [1, 2, 3, 5, 8, 13];
+
 // Todo schema
 export const TodoSchema = z.object({
   id: z.string().uuid(),
@@ -14,6 +17,9 @@ export const TodoSchema = z.object({
   priority: z.number().int().min(1).max(5),
   tags: z.array(z.string()),
   dueDate: z.date().nullable(),
+  points: z.number().int().refine((val) => VALID_POINTS.includes(val), {
+    message: 'Points must be one of: 1, 2, 3, 5, 8, 13',
+  }).nullable(),
   displayOrder: z.number().int(),
   createdAt: z.date(),
   updatedAt: z.date(),
@@ -28,6 +34,9 @@ export const TodoUpdateSchema = z.object({
   priority: z.number().int().min(1).max(5).optional(),
   tags: z.array(z.string()).optional(),
   dueDate: z.date().nullable().optional(),
+  points: z.number().int().refine((val) => VALID_POINTS.includes(val), {
+    message: 'Points must be one of: 1, 2, 3, 5, 8, 13',
+  }).nullable().optional(),
   displayOrder: z.number().int().optional(),
 });
 
@@ -37,6 +46,9 @@ export const TodoCreateMetadataSchema = z.object({
   priority: z.number().int().min(1).max(5).optional(),
   tags: z.array(z.string()).optional(),
   dueDate: z.date().optional(),
+  points: z.number().int().refine((val) => VALID_POINTS.includes(val), {
+    message: 'Points must be one of: 1, 2, 3, 5, 8, 13',
+  }).optional(),
 });
 
 // Filters for getTodos
@@ -54,6 +66,9 @@ export const CreateTodoInputSchema = z.object({
   priority: z.number().int().min(1).max(5).optional(),
   tags: z.array(z.string()).optional(),
   dueDate: z.string().datetime().optional(), // ISO string from MCP
+  points: z.number().int().refine((val) => VALID_POINTS.includes(val), {
+    message: 'Points must be one of: 1, 2, 3, 5, 8, 13',
+  }).optional(),
 });
 
 export const ListTodosInputSchema = z.object({
@@ -71,6 +86,9 @@ export const UpdateTodoInputSchema = z.object({
   priority: z.number().int().min(1).max(5).optional(),
   tags: z.array(z.string()).optional(),
   dueDate: z.string().datetime().optional(), // ISO string from MCP
+  points: z.number().int().refine((val) => VALID_POINTS.includes(val), {
+    message: 'Points must be one of: 1, 2, 3, 5, 8, 13',
+  }).optional(),
 });
 
 export const DeleteTodoInputSchema = z.object({
@@ -99,6 +117,9 @@ export const CreateTodoRequestSchema = z.object({
   priority: z.number().int().min(1).max(5).optional(),
   tags: z.array(z.string()).optional(),
   dueDate: z.string().datetime().optional(), // ISO string from REST API
+  points: z.number().int().refine((val) => VALID_POINTS.includes(val), {
+    message: 'Points must be one of: 1, 2, 3, 5, 8, 13',
+  }).optional(),
 });
 
 export const UpdateTodoRequestSchema = z.object({
@@ -108,6 +129,9 @@ export const UpdateTodoRequestSchema = z.object({
   priority: z.number().int().min(1).max(5).optional(),
   tags: z.array(z.string()).optional(),
   dueDate: z.string().datetime().optional(), // ISO string from REST API
+  points: z.number().int().refine((val) => VALID_POINTS.includes(val), {
+    message: 'Points must be one of: 1, 2, 3, 5, 8, 13',
+  }).optional(),
   displayOrder: z.number().int().optional(),
 });
 

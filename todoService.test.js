@@ -30,6 +30,7 @@ describe('TodoService', () => {
       expect(todo.priority).toBe(3);
       expect(todo.tags).toEqual([]);
       expect(todo.dueDate).toBeNull();
+      expect(todo.points).toBeNull();
       expect(todo.createdAt).toBeInstanceOf(Date);
       expect(todo.updatedAt).toBeInstanceOf(Date);
     });
@@ -48,6 +49,33 @@ describe('TodoService', () => {
       expect(todo.priority).toBe(1);
       expect(todo.tags).toEqual(['work', 'pure-earth-labs']);
       expect(todo.dueDate).toEqual(dueDate);
+    });
+
+    it('should create a todo with story points', () => {
+      const todo = service.createTodo('Complex refactoring', {
+        points: 8
+      });
+
+      expect(todo.text).toBe('Complex refactoring');
+      expect(todo.points).toBe(8);
+    });
+
+    it('should create a todo with all metadata including points', () => {
+      const dueDate = new Date('2025-12-31');
+      const todo = service.createTodo('Epic feature', {
+        starred: true,
+        priority: 1,
+        tags: ['work'],
+        dueDate,
+        points: 13
+      });
+
+      expect(todo.text).toBe('Epic feature');
+      expect(todo.starred).toBe(true);
+      expect(todo.priority).toBe(1);
+      expect(todo.tags).toEqual(['work']);
+      expect(todo.dueDate).toEqual(dueDate);
+      expect(todo.points).toBe(13);
     });
   });
 
@@ -111,6 +139,16 @@ describe('TodoService', () => {
       expect(updated.starred).toBe(true);
       expect(updated.priority).toBe(1);
       expect(updated.tags).toEqual(['updated']);
+    });
+
+    it('should update todo points', () => {
+      const todo = service.createTodo('Task');
+
+      const updated = service.updateTodo(todo.id, { points: 5 });
+      expect(updated.points).toBe(5);
+
+      const updatedAgain = service.updateTodo(todo.id, { points: 13 });
+      expect(updatedAgain.points).toBe(13);
     });
 
     it('should throw error for non-existent todo', () => {
@@ -267,6 +305,27 @@ describe('TodoService', () => {
       expect(() => service.createTodo('Test', { priority: 3.5 })).toThrow();
     });
 
+    it('should reject invalid story points', () => {
+      // Invalid: not in Fibonacci sequence
+      expect(() => service.createTodo('Test', { points: 4 })).toThrow('Points must be one of: 1, 2, 3, 5, 8, 13');
+      expect(() => service.createTodo('Test', { points: 7 })).toThrow('Points must be one of: 1, 2, 3, 5, 8, 13');
+      expect(() => service.createTodo('Test', { points: 10 })).toThrow('Points must be one of: 1, 2, 3, 5, 8, 13');
+
+      // Invalid: non-integer
+      expect(() => service.createTodo('Test', { points: 3.5 })).toThrow();
+
+      // Invalid: negative
+      expect(() => service.createTodo('Test', { points: -1 })).toThrow();
+
+      // Valid: Fibonacci values should work
+      expect(() => service.createTodo('Test 1', { points: 1 })).not.toThrow();
+      expect(() => service.createTodo('Test 2', { points: 2 })).not.toThrow();
+      expect(() => service.createTodo('Test 3', { points: 3 })).not.toThrow();
+      expect(() => service.createTodo('Test 5', { points: 5 })).not.toThrow();
+      expect(() => service.createTodo('Test 8', { points: 8 })).not.toThrow();
+      expect(() => service.createTodo('Test 13', { points: 13 })).not.toThrow();
+    });
+
     it('should reject invalid filters', () => {
       expect(() => service.getTodos({ priority: 10 })).toThrow();
       expect(() => service.getTodos({ starred: 'yes' })).toThrow();
@@ -282,6 +341,7 @@ describe('TodoService', () => {
       const todo = service.createTodo('Test');
       expect(() => service.updateTodo(todo.id, { priority: 0 })).toThrow();
       expect(() => service.updateTodo(todo.id, { text: '' })).toThrow();
+      expect(() => service.updateTodo(todo.id, { points: 4 })).toThrow('Points must be one of: 1, 2, 3, 5, 8, 13');
     });
   });
 });

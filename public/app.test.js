@@ -443,6 +443,87 @@ describe('TodoListManager', () => {
 
     vi.useRealTimers();
   });
+
+  it('should create todo with points from quick add form with dropdown', async () => {
+    const { TodoListManager } = await import('./app.js');
+    todoListManager = new TodoListManager(apiClient);
+
+    const mockNewTodo = { id: '123', text: 'New todo with points', completed: false, points: 5 };
+
+    global.fetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => mockNewTodo,
+    });
+
+    // Simulate selecting 5 points from dropdown
+    await todoListManager.quickAddTodo('New todo with points', 5);
+
+    expect(global.fetch).toHaveBeenCalledWith('/api/todos', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ text: 'New todo with points', points: 5 }),
+    });
+  });
+
+  it('should render points dropdown in todo element for editing', async () => {
+    const { TodoListManager } = await import('./app.js');
+    todoListManager = new TodoListManager(apiClient);
+
+    const mockTodo = { id: '1', text: 'Test todo', completed: false, starred: false, priority: 3, tags: [], points: 3 };
+
+    todoListManager.render([mockTodo]);
+
+    const todoElement = document.querySelector('[data-id="1"]');
+    expect(todoElement).toBeTruthy();
+
+    // Should have a points badge or clickable area to edit
+    const pointsElement = todoElement.querySelector('.points-badge, .points-editor');
+    expect(pointsElement).toBeTruthy();
+  });
+
+  it('should update todo points when clicking points badge', async () => {
+    const { TodoListManager } = await import('./app.js');
+    todoListManager = new TodoListManager(apiClient);
+
+    const mockTodo = { id: '1', text: 'Test todo', completed: false, starred: false, priority: 3, tags: [], points: 3 };
+
+    global.fetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({ ...mockTodo, points: 8 }),
+    });
+
+    await todoListManager.updateTodoPoints('1', 8);
+
+    expect(global.fetch).toHaveBeenCalledWith('/api/todos/1', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ points: 8 }),
+    });
+  });
+
+  it('should display points dropdown with all Fibonacci values', async () => {
+    const { TodoListManager } = await import('./app.js');
+    todoListManager = new TodoListManager(apiClient);
+
+    const mockTodo = { id: '1', text: 'Test todo', completed: false, starred: false, priority: 3, tags: [], points: null };
+
+    todoListManager.render([mockTodo]);
+
+    // Trigger points editor (this will be implemented)
+    const pointsEditor = todoListManager.createPointsEditor(mockTodo);
+    document.body.appendChild(pointsEditor);
+
+    const options = pointsEditor.querySelectorAll('option');
+    const values = Array.from(options).map(opt => opt.value);
+
+    expect(values).toContain('');  // None option
+    expect(values).toContain('1');
+    expect(values).toContain('2');
+    expect(values).toContain('3');
+    expect(values).toContain('5');
+    expect(values).toContain('8');
+    expect(values).toContain('13');
+  });
 });
 
 describe('MobileTabManager', () => {

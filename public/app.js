@@ -330,6 +330,7 @@ export class TodoListManager {
     this.todosContainer = document.getElementById('todos-container');
     this.quickAddForm = document.getElementById('quick-add-form');
     this.quickAddInput = document.getElementById('quick-add-input');
+    this.quickAddPoints = document.getElementById('quick-add-points');
     this.pollingInterval = null;
     this.currentTodos = [];
     this.draggedElement = null;
@@ -345,9 +346,13 @@ export class TodoListManager {
       this.quickAddForm.addEventListener('submit', async (e) => {
         e.preventDefault();
         const text = this.quickAddInput.value.trim();
+        const pointsValue = this.quickAddPoints?.value;
+        const points = pointsValue ? parseInt(pointsValue, 10) : undefined;
+
         if (text) {
-          await this.quickAddTodo(text);
+          await this.quickAddTodo(text, points);
           this.quickAddInput.value = '';
+          if (this.quickAddPoints) this.quickAddPoints.value = '';
         }
       });
     }
@@ -482,6 +487,10 @@ export class TodoListManager {
       div.appendChild(priority);
     }
 
+    // Points badge/editor
+    const pointsContainer = this.createPointsEditor(todo);
+    div.appendChild(pointsContainer);
+
     // Star button
     if (todo.starred) {
       const star = document.createElement('span');
@@ -532,12 +541,73 @@ export class TodoListManager {
 
 
   /**
+   * Update todo points
+   * @param {string} id
+   * @param {number|null} points
+   */
+  async updateTodoPoints(id, points) {
+    try {
+      await this.apiClient.updateTodo(id, { points: points || null });
+      await this.refresh();
+    } catch (error) {
+      console.error('Update points error:', error);
+    }
+  }
+
+  /**
+   * Create points editor dropdown
+   * @param {Todo} todo
+   * @returns {HTMLElement}
+   */
+  createPointsEditor(todo) {
+    const select = document.createElement('select');
+    select.className = 'points-editor px-2 py-1 text-xs font-semibold rounded bg-blue-100 text-blue-800 border-0 cursor-pointer hover:bg-blue-200 transition-colors';
+    select.title = 'Edit story points';
+
+    // Add options
+    const options = [
+      { value: '', label: 'None' },
+      { value: '1', label: '1 pt' },
+      { value: '2', label: '2 pts' },
+      { value: '3', label: '3 pts' },
+      { value: '5', label: '5 pts' },
+      { value: '8', label: '8 pts' },
+      { value: '13', label: '13 pts' },
+    ];
+
+    options.forEach(opt => {
+      const option = document.createElement('option');
+      option.value = opt.value;
+      option.textContent = opt.label;
+      if ((todo.points && opt.value === String(todo.points)) || (!todo.points && opt.value === '')) {
+        option.selected = true;
+      }
+      select.appendChild(option);
+    });
+
+    // Handle change
+    select.addEventListener('change', (e) => {
+      e.stopPropagation();
+      const value = e.target.value;
+      const points = value ? parseInt(value, 10) : null;
+      this.updateTodoPoints(todo.id, points);
+    });
+
+    return select;
+  }
+
+  /**
    * Quick add a new todo
    * @param {string} text
+   * @param {number} [points] - Optional story points
    */
-  async quickAddTodo(text) {
+  async quickAddTodo(text, points) {
     try {
-      await this.apiClient.createTodo({ text });
+      const data = { text };
+      if (points !== undefined) {
+        data.points = points;
+      }
+      await this.apiClient.createTodo(data);
       await this.refresh();
     } catch (error) {
       console.error('Quick add error:', error);
