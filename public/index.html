@@ -26,12 +26,38 @@
       border-top: 3px solid #6366f1;
       padding-top: 10px;
     }
+
+    /* Mobile tab styles */
+    .tab-button {
+      transition: all 0.2s ease;
+    }
+    .tab-button.active {
+      border-bottom: 3px solid #6366f1;
+      color: #6366f1;
+      font-weight: 600;
+    }
+    /* Only hide panels on mobile when hidden class is present */
+    @media (max-width: 767px) {
+      .panel.hidden {
+        display: none !important;
+      }
+    }
   </style>
 </head>
-<body class="bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 min-h-screen flex items-center justify-center p-4">
-  <div class="bg-white rounded-xl shadow-2xl w-full max-w-7xl flex max-h-[90vh]">
-    <!-- Left: Chat Interface -->
-    <div class="w-1/2 flex flex-col border-r border-gray-200">
+<body class="bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 min-h-screen flex items-center justify-center p-2 md:p-4">
+  <div class="bg-white rounded-xl shadow-2xl w-full max-w-7xl flex flex-col md:flex-row h-[96vh] md:max-h-[90vh]">
+    <!-- Mobile Tab Navigation -->
+    <div id="mobile-tabs" class="flex md:hidden border-b border-gray-200">
+      <button id="chat-tab" class="tab-button flex-1 py-4 text-center text-lg font-medium text-gray-600 active">
+        💬 Chat
+      </button>
+      <button id="todos-tab" class="tab-button flex-1 py-4 text-center text-lg font-medium text-gray-600">
+        ✓ Todos
+      </button>
+    </div>
+
+    <!-- Chat Panel -->
+    <div id="chat-panel" class="panel w-full md:w-1/2 flex flex-col border-gray-200 md:border-r">
       <!-- Header -->
       <header class="px-6 py-5 border-b border-gray-200 flex justify-between items-center">
         <div>
@@ -40,7 +66,7 @@
         </div>
         <button
           id="clear-chat-btn"
-          class="px-4 py-2 text-sm bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
+          class="px-3 py-1.5 md:px-4 md:py-2 text-xs md:text-sm bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
           title="Clear chat history"
         >
           Clear Chat
@@ -65,19 +91,19 @@
           placeholder="Ask me about your todos..."
           autocomplete="off"
           required
-          class="flex-1 px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-indigo-500 transition-colors"
+          class="flex-1 px-3 py-2 md:px-4 md:py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-indigo-500 transition-colors text-sm md:text-base"
         >
         <button
           type="submit"
-          class="px-6 py-3 bg-indigo-600 text-white font-semibold rounded-lg hover:bg-indigo-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
+          class="px-4 py-2 md:px-6 md:py-3 bg-indigo-600 text-white font-semibold rounded-lg hover:bg-indigo-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed text-sm md:text-base"
         >
           Send
         </button>
       </form>
     </div>
 
-    <!-- Right: Todo List UI -->
-    <div class="w-1/2 flex flex-col">
+    <!-- Todos Panel -->
+    <div id="todos-panel" class="panel w-full md:w-1/2 flex-col hidden md:flex">
       <!-- Header -->
       <header class="px-6 py-5 border-b border-gray-200">
         <h1 class="text-2xl font-bold text-gray-800">Your Todos</h1>
@@ -90,35 +116,33 @@
       </div>
 
       <!-- Quick Add Form -->
-      <form id="quick-add-form" class="px-6 py-4 border-t border-gray-200">
-        <div class="flex gap-3">
-          <input
-            type="text"
-            id="quick-add-input"
-            placeholder="Quick add todo..."
-            autocomplete="off"
-            class="flex-1 px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-indigo-500 transition-colors"
-          >
-          <select
-            id="quick-add-points"
-            class="px-3 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-indigo-500 transition-colors bg-white"
-            title="Story Points"
-          >
-            <option value="">Points</option>
-            <option value="1">1</option>
-            <option value="2">2</option>
-            <option value="3">3</option>
-            <option value="5">5</option>
-            <option value="8">8</option>
-            <option value="13">13</option>
-          </select>
-          <button
-            type="submit"
-            class="px-6 py-3 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700 transition-colors"
-          >
-            Add
-          </button>
-        </div>
+      <form id="quick-add-form" class="px-3 py-3 md:px-6 md:py-4 border-t border-gray-200 flex gap-2 md:gap-3">
+        <input
+          type="text"
+          id="quick-add-input"
+          placeholder="Quick add todo..."
+          autocomplete="off"
+          class="flex-1 px-3 py-2 md:px-4 md:py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-indigo-500 transition-colors text-sm md:text-base"
+        >
+        <select
+          id="quick-add-points"
+          class="px-2 py-2 md:px-3 md:py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-indigo-500 transition-colors bg-white text-sm md:text-base"
+          title="Story Points"
+        >
+          <option value="">Points</option>
+          <option value="1">1</option>
+          <option value="2">2</option>
+          <option value="3">3</option>
+          <option value="5">5</option>
+          <option value="8">8</option>
+          <option value="13">13</option>
+        </select>
+        <button
+          type="submit"
+          class="px-4 py-2 md:px-6 md:py-3 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700 transition-colors text-sm md:text-base whitespace-nowrap"
+        >
+          Add
+        </button>
       </form>
     </div>
   </div>
