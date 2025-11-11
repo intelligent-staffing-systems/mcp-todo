@@ -239,6 +239,39 @@ describe('ApiClient', () => {
 
     await expect(client.createTodo({ text: '' })).rejects.toThrow();
   });
+
+  it('should reorder todos', async () => {
+    const client = new ApiClient();
+    const orderedIds = ['id-3', 'id-1', 'id-2'];
+    const mockResponse = { success: true, message: 'Todos reordered successfully' };
+
+    global.fetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => mockResponse,
+    });
+
+    const result = await client.reorderTodos(orderedIds);
+
+    expect(global.fetch).toHaveBeenCalledWith('/api/todos/reorder', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ orderedIds }),
+    });
+    expect(result).toEqual(mockResponse);
+    expect(result.success).toBe(true);
+  });
+
+  it('should handle error when reordering todos', async () => {
+    const client = new ApiClient();
+
+    global.fetch.mockResolvedValueOnce({
+      ok: false,
+      status: 400,
+      statusText: 'Bad Request',
+    });
+
+    await expect(client.reorderTodos(['invalid-id'])).rejects.toThrow('HTTP 400: Bad Request');
+  });
 });
 
 describe('UIManager', () => {

@@ -539,6 +539,7 @@ export class TodoListManager {
     }
   }
 
+
   /**
    * Update todo points
    * @param {string} id
